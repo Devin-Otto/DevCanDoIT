@@ -46,6 +46,7 @@
 - `ADMIN_SESSION_SECRET`
 - `ADMIN_PASSWORD_SALT`
 - `ADMIN_PASSWORD_HASH`
+- `ADMIN_COOKIE_DOMAIN` is optional, but useful if you want to share the admin login across subdomains like `manage.devcandoit.com`
 - `GMAIL_USER`
 - `GMAIL_APP_PASSWORD`
 - `CONTACT_INBOX`

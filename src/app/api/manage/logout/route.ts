@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ADMIN_COOKIE_NAME } from "@/lib/admin-auth";
+import { ADMIN_COOKIE_NAME, getAdminCookieDomain } from "@/lib/admin-auth";
 import { assertAllowedOrigin } from "@/lib/request-security";
 
 export const runtime = "nodejs";
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 0,
+    domain: getAdminCookieDomain(),
   });
 
   return response;
 }
-

@@ -9,6 +9,10 @@ function getSessionSecret() {
   return secret;
 }
 
+export function getAdminCookieDomain() {
+  return process.env.ADMIN_COOKIE_DOMAIN?.trim() || undefined;
+}
+
 export function getAdminUsername() {
   const username = process.env.ADMIN_USERNAME?.trim();
   if (!username) {

@@ -39,6 +39,7 @@ The setup script seeds `.env.local` with generated admin/session/encryption valu
 - Set `LEAD_ENCRYPTION_KEY`
 - Set `VIDEO_ASSET_ROOT` to the Railway volume or host path that contains the raw video files
 - Set `ADMIN_USERNAME`, `ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD_SALT`, and `ADMIN_PASSWORD_HASH`
+- Optionally set `ADMIN_COOKIE_DOMAIN=.devcandoit.com` if you want to share the admin session across subdomains like `manage.devcandoit.com`
 - Set Gmail SMTP credentials if you want contact email delivery
 
 ## Contact form email flow

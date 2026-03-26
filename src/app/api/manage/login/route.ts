@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ADMIN_COOKIE_NAME, issueAdminSessionToken } from "@/lib/admin-auth";
+import { ADMIN_COOKIE_NAME, getAdminCookieDomain, issueAdminSessionToken } from "@/lib/admin-auth";
 import { verifyAdminCredentials } from "@/lib/admin-credentials.server";
 import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
 
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
       path: "/",
       maxAge: 60 * 60 * 12,
+      domain: getAdminCookieDomain(),
     });
 
     return response;
@@ -46,4 +47,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unable to sign in right now." }, { status: 500 });
   }
 }
-
