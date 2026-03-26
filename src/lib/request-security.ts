@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import { getAdminCookieDomain } from "@/lib/admin-auth";
+
 const rateLimitStore = globalThis as typeof globalThis & {
   __devcandoitRateLimit?: Map<string, { count: number; resetAt: number }>;
 };
@@ -33,6 +35,17 @@ function getAllowedOrigin(request: NextRequest) {
   return request.nextUrl.origin;
 }
 
+function getAdminCookieDomainRoot() {
+  return getAdminCookieDomain()?.replace(/^\./, "").trim().toLowerCase() || undefined;
+}
+
+function isHostnameUnderDomain(hostname: string, domain: string) {
+  const normalizedHostname = hostname.trim().toLowerCase();
+  const normalizedDomain = domain.trim().toLowerCase();
+
+  return normalizedHostname === normalizedDomain || normalizedHostname.endsWith(`.${normalizedDomain}`);
+}
+
 export function assertAllowedOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin") || request.headers.get("referer");
   if (!origin) {
@@ -41,7 +54,16 @@ export function assertAllowedOrigin(request: NextRequest): boolean {
 
   try {
     const parsed = new URL(origin);
-    return parsed.origin === getAllowedOrigin(request);
+    if (parsed.origin === getAllowedOrigin(request)) {
+      return true;
+    }
+
+    const adminCookieDomain = getAdminCookieDomainRoot();
+    if (adminCookieDomain && isHostnameUnderDomain(parsed.hostname, adminCookieDomain)) {
+      return true;
+    }
+
+    return false;
   } catch {
     return false;
   }
