@@ -292,11 +292,11 @@ export const appProjects = [
   },
   {
     slug: "livestream-gaze-tracker",
-    title: "Livestream Gaze Tracker",
-    category: "Computer Vision / Creator Tools",
-    summary: "A tool that estimates whether a host is looking at a specific on-screen region.",
-    goal: "Quantify attention toward a selected tile or screen area.",
-    stack: ["Python", "PyQt", "OpenCV", "Video processing"],
+    title: "Video Vision Tracker",
+    category: "Computer Vision / Video Analysis",
+    summary: "A video-based vision tracking tool that estimates whether a host is looking at a selected region.",
+    goal: "Track visual attention toward a selected on-screen area from recorded or live video.",
+    stack: ["Python", "PyQt", "OpenCV", "Video analysis"],
     status: "Detailed requirements",
     nextStep: "Turn into a concise case study with before/after frames."
   },
@@ -341,26 +341,6 @@ export const appProjects = [
     nextStep: "Build a founder-style thesis deck."
   },
   {
-    slug: "photon-quark-scattering",
-    title: "Photon–Quark Scattering Experiment Concept",
-    category: "Physics Research Concept",
-    summary: "A theoretical experiment exploring whether quantum uncertainty at the quark level is fundamental.",
-    goal: "Probe the limits of interpretation around uncertainty and observation.",
-    stack: ["Research memo", "Literature framing", "Diagrams"],
-    status: "Concept defined",
-    nextStep: "Present as a concise research note."
-  },
-  {
-    slug: "beta-decay-experiment",
-    title: "Beta Decay and Golden Ratio Experiment",
-    category: "Experimental Physics Hypothesis",
-    summary: "A hypothesis-driven experiment testing whether beta decay patterns may reflect hidden phi-related structure.",
-    goal: "Explore whether apparently random decay events show non-random patterning.",
-    stack: ["Experiment plan", "Simulation", "Statistics"],
-    status: "Motivation defined",
-    nextStep: "Build a short formal hypothesis brief."
-  },
-  {
     slug: "conscious-chatbot",
     title: "Conscious Chatbot / Phi-Weighted Memory-Attention System",
     category: "AI Research / Agent Design",
@@ -391,16 +371,6 @@ export const appProjects = [
     nextStep: "Create one page of requirements and hardware assumptions."
   },
   {
-    slug: "aly-song-project",
-    title: "Aly Song Project",
-    category: "Music / Creative Direction",
-    summary: "A playful romantic bilingual song concept with English and Ukrainian elements.",
-    goal: "Create a sincere, musically compelling piece with emotional alignment.",
-    stack: ["Songwriting", "Production", "Lyric drafting"],
-    status: "Theme defined",
-    nextStep: "Finish the track and package it with cover art."
-  },
-  {
     slug: "plant-lifecycle-album",
     title: "Plant Lifecycle Concept Album",
     category: "Music / Worldbuilding",
@@ -412,23 +382,13 @@ export const appProjects = [
   },
   {
     slug: "interactive-game-world",
-    title: "Interactive Game World for Aly",
-    category: "Game / Interactive Art",
-    summary: "A stylized game experience with symbolic environments, puzzles, and a final QR/video reveal.",
-    goal: "Create a meaningful interactive gift experience blending art, story, and play.",
-    stack: ["Unity", "Art assets", "Scripted interactions"],
+    title: "OurWorld Long Distance Dating App",
+    category: "Interactive Design / Dating App",
+    summary: "A long-distance dating app concept with shared spaces, rituals, and expressive connection features.",
+    goal: "Create a meaningful long-distance relationship experience with a polished app feel.",
+    stack: ["React", "Interactive UI", "Product design"],
     status: "Motifs established",
     nextStep: "Build one vertical-slice scene."
-  },
-  {
-    slug: "coupon-gift-ecosystem",
-    title: "Coupon / Interactive Gift Ecosystem",
-    category: "Interactive Design",
-    summary: "A family of coupon books, custom websites, puzzle elements, and digital experiences for Aly.",
-    goal: "Create memorable, personalized interactive artifacts.",
-    stack: ["Web design", "Image assets", "Interactive logic"],
-    status: "Multiple subprojects",
-    nextStep: "Curate the most polished examples."
   },
   {
     slug: "job-search-automation",
