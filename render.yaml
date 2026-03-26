@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: devcandoit-web
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: LEAD_DATABASE_URL
+        sync: false
+      - key: LEAD_DATABASE_AUTH_TOKEN
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_SESSION_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD_SALT
+        sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: CONTACT_INBOX
+        sync: false
+      - key: CONTACT_TAG
+        value: DEV_CANDO_IT_LEAD
+
+  - type: worker
+    name: devcandoit-lead-worker
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run worker:leads
+    autoDeploy: true
+    envVars:
+      - key: LEAD_DATABASE_URL
+        sync: false
+      - key: LEAD_DATABASE_AUTH_TOKEN
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_SESSION_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD_SALT
+        sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false

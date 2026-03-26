@@ -1,0 +1,63 @@
+# Operating system cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.fleet/
+
+# Dependencies and build outputs
+node_modules
+.next
+.turbo
+.vercel
+.railway
+coverage
+dist
+out
+build
+.eslintcache
+.nyc_output
+playwright-report
+test-results
+*.tsbuildinfo
+
+# Logs and transient files
+*.log
+*.pid
+*.seed
+*.tmp
+*.trace
+*.orig
+*.rej
+*.swp
+*.swo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+.envrc
+*.local
+*.secret
+*.credentials
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+.direnv/
+*.bak
+*.backup
+*.db
+*.sqlite
+*.sqlite3
+
+# Private runtime data and local-only artifacts
+data/
+videos/
+docs/AGENT_ONBOARDING.md
+profilephoto.jpeg
