@@ -1,5 +1,3 @@
-import "server-only";
-
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
 const ENCRYPTED_PREFIX = "enc:v1:";
