@@ -2168,6 +2168,108 @@ h3 {
   gap: 1.25rem;
 }
 
+.profile-photo-panel {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.profile-photo-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.profile-photo-header h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+
+.profile-photo-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 0.85rem;
+  min-width: min(100%, 360px);
+}
+
+.profile-photo-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.profile-photo-preview {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.profile-photo-preview-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.profile-photo-preview-image img {
+  object-fit: cover;
+}
+
+.profile-photo-preview-copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: var(--muted);
+}
+
+.profile-photo-actions {
+  display: grid;
+  gap: 0.85rem;
+  align-content: start;
+}
+
+.profile-photo-dropzone {
+  min-height: 180px;
+}
+
+.profile-photo-status {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+}
+
+.profile-photo-status p {
+  margin: 0;
+}
+
+.profile-photo-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.profile-photo-details > div {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.profile-photo-details strong {
+  overflow-wrap: anywhere;
+}
+
 .video-upload-header {
   display: flex;
   flex-wrap: wrap;
@@ -2487,6 +2589,12 @@ h3 {
 
   .video-upload-hero,
   .video-upload-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-photo-layout,
+  .profile-photo-meta,
+  .profile-photo-details {
     grid-template-columns: 1fr;
   }
 

@@ -96,7 +96,7 @@ export function HeroComposer() {
               rel="noreferrer"
               aria-label="Open Devin Otto on LinkedIn"
             >
-              <img src="/profilephoto.jpeg" alt="Portrait of Devin Otto" className="hero-photo-image" />
+              <img src="/api/profile-photo" alt="Portrait of Devin Otto" className="hero-photo-image" />
               <div
                 className="hero-glasses"
                 style={{

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { StructuredData } from "@/components/StructuredData";
+import { ProfilePhotoUploadPanel } from "@/components/ProfilePhotoUploadPanel";
 import { VideoUploadPanel } from "@/components/VideoUploadPanel";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
 import { listManagedVideos, getManagedVideoAssetRoot } from "@/lib/manage-videos.server";
@@ -58,8 +59,8 @@ export default async function ManagePage() {
         </aside>
       </section>
 
+      <ProfilePhotoUploadPanel assetRoot={assetRoot} />
       <VideoUploadPanel initialVideos={initialVideos} assetRoot={assetRoot} />
     </main>
   );
 }
-

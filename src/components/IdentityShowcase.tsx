@@ -59,7 +59,7 @@ export function IdentityShowcase() {
       <div className="identity-card">
         <div className="identity-avatar">
           <NextImage
-            src="/profilephoto.jpeg"
+            src="/api/profile-photo"
             alt="Portrait of Devin Otto"
             fill
             sizes="(max-width: 980px) 240px, 300px"
