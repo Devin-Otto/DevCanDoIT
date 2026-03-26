@@ -2130,6 +2130,10 @@ h3 {
   gap: 1.25rem;
 }
 
+.manage-page {
+  gap: 2rem;
+}
+
 .admin-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -2157,6 +2161,160 @@ h3 {
 
 .admin-maintenance .split-section {
   padding-top: 0;
+}
+
+.video-upload-panel {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.video-upload-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.video-upload-header h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+
+.video-upload-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 0.85rem;
+  min-width: min(100%, 360px);
+}
+
+.video-upload-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 1rem;
+}
+
+.video-upload-dropzone {
+  position: relative;
+  display: grid;
+  gap: 0.5rem;
+  align-content: center;
+  min-height: 220px;
+  padding: 1.4rem;
+  border-radius: 24px;
+  border: 1px dashed rgba(155, 195, 255, 0.28);
+  background:
+    radial-gradient(circle at top left, rgba(155, 195, 255, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+}
+
+.video-upload-dropzone input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.video-upload-dropzone strong {
+  font-size: 1.15rem;
+}
+
+.video-upload-dropzone span {
+  max-width: 42ch;
+  color: var(--muted);
+}
+
+.video-upload-actions {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.video-upload-note {
+  padding: 1rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+
+.video-selection-list,
+.video-upload-status,
+.video-library {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.video-selection-header,
+.video-upload-status-header,
+.video-library-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  color: var(--muted);
+}
+
+.video-selection-list ul,
+.video-upload-log,
+.video-library-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.video-selection-list li,
+.video-upload-log li,
+.video-library-list li {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.video-selection-list li,
+.video-upload-log li {
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.video-library-list li {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.video-library-list li.present {
+  border-color: rgba(121, 199, 145, 0.18);
+  background: rgba(121, 199, 145, 0.05);
+}
+
+.video-library-list li.missing {
+  border-color: rgba(255, 155, 155, 0.16);
+  background: rgba(255, 155, 155, 0.04);
+}
+
+.video-library-list p {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+}
+
+.video-library-meta {
+  display: grid;
+  justify-items: end;
+  color: var(--muted);
+}
+
+.video-upload-ok {
+  color: #7bd89c;
+}
+
+.video-upload-fail {
+  color: #ff9f97;
 }
 
 .auth-page {
@@ -2325,6 +2483,22 @@ h3 {
   .lead-drawer-grid,
   .lead-drawer-hero {
     grid-template-columns: 1fr;
+  }
+
+  .video-upload-hero,
+  .video-upload-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .video-selection-list li,
+  .video-upload-log li,
+  .video-library-list li {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .video-library-meta {
+    justify-items: start;
   }
 
   .lead-map-canvas {

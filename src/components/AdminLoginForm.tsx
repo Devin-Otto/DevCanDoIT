@@ -4,11 +4,21 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { LockKeyhole, LogIn, LoaderCircle, UserRound } from "lucide-react";
 
-export function AdminLoginForm() {
+interface AdminLoginFormProps {
+  apiPath?: string;
+  redirectTo?: string;
+  initialMessage?: string;
+}
+
+export function AdminLoginForm({
+  apiPath = "/api/admin/login",
+  redirectTo = "/admin",
+  initialMessage = "Private access only.",
+}: AdminLoginFormProps) {
   const router = useRouter();
   const [username, setUsername] = useState("Devin");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("Private access only.");
+  const [message, setMessage] = useState(initialMessage);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -17,7 +27,7 @@ export function AdminLoginForm() {
     setMessage("Checking credentials...");
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetch(apiPath, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,7 +44,7 @@ export function AdminLoginForm() {
         throw new Error(payload.error || "Login failed.");
       }
 
-      router.replace("/admin");
+      router.replace(redirectTo);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to sign in.");

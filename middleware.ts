@@ -17,6 +17,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/leads") ||
     pathname.startsWith("/api/leads") ||
     pathname.startsWith("/api/admin");
+  const isManagePath = pathname.startsWith("/manage") || pathname.startsWith("/api/manage");
 
   if (isPublicSiteOnly && isInternalPath) {
     if (isApiPath) {
@@ -24,6 +25,31 @@ export async function middleware(request: NextRequest) {
     }
 
     return new NextResponse("Not Found", { status: 404 });
+  }
+
+  if (isManagePath) {
+    const isManageApiPath = pathname.startsWith("/api/manage");
+
+    if (pathname === "/manage/login") {
+      if (authed) {
+        return NextResponse.redirect(new URL("/manage", request.url));
+      }
+      return NextResponse.next();
+    }
+
+    if (pathname.startsWith("/api/manage/login") || pathname.startsWith("/api/manage/logout")) {
+      return NextResponse.next();
+    }
+
+    if (!authed) {
+      if (isManageApiPath) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      return NextResponse.redirect(new URL("/manage/login", request.url));
+    }
+
+    return NextResponse.next();
   }
 
   if (pathname.startsWith("/api/leads")) {
@@ -69,5 +95,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/admin", "/leads", "/api/leads/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/admin",
+    "/manage/:path*",
+    "/manage",
+    "/leads",
+    "/api/leads/:path*",
+    "/api/admin/:path*",
+    "/api/manage/:path*",
+  ],
 };
