@@ -18,12 +18,15 @@ type UploadResult = {
   fileName: string;
   status: "queued" | "uploading" | "uploaded" | "failed";
   message: string;
+  progress: number | null;
 };
 
 interface VideoUploadPanelProps {
   initialVideos: ManagedVideoFile[];
   assetRoot: string;
 }
+
+const BIG_FILE_WARNING_BYTES = 95 * 1024 * 1024;
 
 function formatBytes(bytes: number | null) {
   if (bytes === null) {
@@ -56,6 +59,10 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
 
   const videoCount = useMemo(() => videos.length, [videos.length]);
   const uploadedCount = useMemo(() => videos.filter((video) => video.exists).length, [videos]);
+  const hasOversizedFiles = useMemo(
+    () => selectedFiles.some((file) => file.size >= BIG_FILE_WARNING_BYTES),
+    [selectedFiles]
+  );
 
   const refreshInventory = async () => {
     const response = await fetch("/api/manage/videos", {
@@ -73,6 +80,58 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
     setVideos(payload.videos);
   };
 
+  const uploadVideoFile = (file: File, onProgress: (progress: number | null) => void) =>
+    new Promise<{
+      ok?: boolean;
+      error?: string;
+      fileName?: string;
+      bytesWritten?: number;
+    }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.open("POST", "/api/manage/videos");
+      xhr.responseType = "text";
+      xhr.withCredentials = true;
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && event.total > 0) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+          return;
+        }
+
+        onProgress(null);
+      };
+      xhr.onload = () => {
+        let payload: {
+          ok?: boolean;
+          error?: string;
+          fileName?: string;
+          bytesWritten?: number;
+        } = {};
+
+        try {
+          payload = JSON.parse(xhr.responseText) as typeof payload;
+        } catch {
+          // ignore parse issues and fall through to the status check below
+        }
+
+        if (xhr.status < 200 || xhr.status >= 300) {
+          reject(new Error(payload.error || `Upload failed with status ${xhr.status}.`));
+          return;
+        }
+
+        resolve(payload);
+      };
+      xhr.onerror = () => {
+        reject(new Error("Unable to upload video."));
+      };
+      xhr.onabort = () => {
+        reject(new Error("Upload canceled."));
+      };
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+      xhr.setRequestHeader("X-Video-Filename", encodeURIComponent(file.name));
+      xhr.send(file);
+    });
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       setMessage("Choose one or more video files first.");
@@ -81,47 +140,69 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
 
     setLoading(true);
     setMessage(`Uploading ${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} to ${assetRoot}...`);
-    setResults(selectedFiles.map((file) => ({ fileName: file.name, status: "queued", message: "Waiting..." })));
+    setResults(
+      selectedFiles.map((file) => ({
+        fileName: file.name,
+        status: "queued",
+        message: "Waiting...",
+        progress: 0,
+      }))
+    );
 
     const nextResults: UploadResult[] = [];
 
     try {
-      for (const file of selectedFiles) {
-        nextResults.push({ fileName: file.name, status: "uploading", message: "Streaming to volume..." });
+      for (const [index, file] of selectedFiles.entries()) {
+        nextResults.push({ fileName: file.name, status: "uploading", message: "Streaming to volume...", progress: 0 });
         setResults([...nextResults]);
 
-        const response = await fetch("/api/manage/videos", {
-          method: "POST",
-          headers: {
-            "Content-Type": file.type || "application/octet-stream",
-            "X-Video-Filename": encodeURIComponent(file.name),
-          },
-          body: file,
-        });
-
-        const payload = (await response.json().catch(() => ({}))) as {
-          ok?: boolean;
-          error?: string;
-          fileName?: string;
-          bytesWritten?: number;
-        };
-
-        if (!response.ok || !payload.ok) {
-          nextResults[nextResults.length - 1] = {
-            fileName: file.name,
-            status: "failed",
-            message: payload.error || "Upload failed.",
+        const updateCurrentResult = (patch: Partial<UploadResult>) => {
+          const current = nextResults[index];
+          nextResults[index] = {
+            ...current,
+            ...patch,
           };
           setResults([...nextResults]);
+        };
+
+        try {
+          const payload = await uploadVideoFile(file, (progress) => {
+            updateCurrentResult({
+              message:
+                progress === null ? "Streaming to volume..." : `${progress}% uploaded · ${formatBytes(file.size)}`,
+              progress,
+            });
+            setMessage(
+              progress === null
+                ? `Uploading ${file.name}...`
+                : `${file.name}: ${progress}% uploaded (${formatBytes(file.size)})`
+            );
+          });
+
+          if (!payload.ok) {
+            updateCurrentResult({
+              status: "failed",
+              message: payload.error || "Upload failed.",
+              progress: null,
+            });
+            continue;
+          }
+
+          updateCurrentResult({
+            fileName: payload.fileName || file.name,
+            status: "uploaded",
+            message: payload.bytesWritten ? `${formatBytes(payload.bytesWritten)} written` : "Uploaded.",
+            progress: 100,
+          });
+        } catch (error) {
+          updateCurrentResult({
+            status: "failed",
+            message: error instanceof Error ? error.message : "Unable to upload video.",
+            progress: null,
+          });
+          setMessage(error instanceof Error ? error.message : "Unable to upload videos.");
           continue;
         }
-
-        nextResults[nextResults.length - 1] = {
-          fileName: payload.fileName || file.name,
-          status: "uploaded",
-          message: payload.bytesWritten ? `${formatBytes(payload.bytesWritten)} written` : "Uploaded.",
-        };
-        setResults([...nextResults]);
       }
 
       await refreshInventory();
@@ -144,6 +225,12 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
             Select one or more files. The uploader streams each file directly to the mounted volume and preserves the
             exact file name.
           </p>
+          {hasOversizedFiles ? (
+            <p className="video-upload-warning">
+              One or more selected files are larger than about 95 MB. If a file stalls through the proxied domain,
+              try a smaller export or tell me and I’ll move the upload path off the proxy.
+            </p>
+          ) : null}
         </div>
 
         <div className="video-upload-stats">
@@ -254,15 +341,27 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
           <ul className="video-upload-log">
             {results.map((result) => (
               <li key={`${result.fileName}-${result.status}`}>
-                {result.status === "uploaded" ? (
-                  <CheckCircle2 className="size-4 video-upload-ok" />
-                ) : result.status === "failed" ? (
-                  <Circle className="size-4 video-upload-fail" />
-                ) : (
-                  <LoaderCircle className="size-4 icon-spin" />
-                )}
-                <strong>{result.fileName}</strong>
-                <span>{result.message}</span>
+                <div className="video-upload-log-icon">
+                  {result.status === "uploaded" ? (
+                    <CheckCircle2 className="size-4 video-upload-ok" />
+                  ) : result.status === "failed" ? (
+                    <Circle className="size-4 video-upload-fail" />
+                  ) : (
+                    <LoaderCircle className="size-4 icon-spin" />
+                  )}
+                </div>
+
+                <div className="video-upload-log-copy">
+                  <strong>{result.fileName}</strong>
+                  <span>{result.message}</span>
+                  {result.status === "uploading" ? (
+                    <div className="video-upload-progress" aria-hidden="true">
+                      <span style={{ width: `${result.progress ?? 10}%` }} />
+                    </div>
+                  ) : null}
+                </div>
+
+                <small>{result.progress === null ? "" : result.status === "uploading" ? `${result.progress}%` : ""}</small>
               </li>
             ))}
           </ul>

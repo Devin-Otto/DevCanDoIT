@@ -2341,6 +2341,11 @@ h3 {
   color: var(--muted);
 }
 
+.video-upload-warning {
+  margin: 0.65rem 0 0;
+  color: #ffcf9e;
+}
+
 .video-selection-list,
 .video-upload-status,
 .video-library {
@@ -2383,6 +2388,39 @@ h3 {
 .video-upload-log li {
   grid-template-columns: auto 1fr auto;
   align-items: center;
+}
+
+.video-upload-log li {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.video-upload-log-icon {
+  padding-top: 0.1rem;
+}
+
+.video-upload-log-copy {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.video-upload-progress {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.video-upload-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d7e6ff 0%, #91b8f5 100%);
+  box-shadow: 0 0 18px rgba(145, 184, 245, 0.35);
+  transition: width 120ms ease;
 }
 
 .video-library-list li {
