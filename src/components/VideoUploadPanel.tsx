@@ -21,9 +21,18 @@ type UploadResult = {
   progress: number | null;
 };
 
+type UploadPayload = {
+  ok?: boolean;
+  error?: string;
+  fileName?: string;
+  bytesWritten?: number;
+  publicUrl?: string | null;
+};
+
 interface VideoUploadPanelProps {
   initialVideos: ManagedVideoFile[];
-  assetRoot: string;
+  storageLabel: string;
+  storageMode: "filesystem" | "bucket";
 }
 
 const BIG_FILE_WARNING_BYTES = 95 * 1024 * 1024;
@@ -49,7 +58,7 @@ function formatBytes(bytes: number | null) {
   return `${size.toFixed(size >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
-export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelProps) {
+export function VideoUploadPanel({ initialVideos, storageLabel, storageMode }: VideoUploadPanelProps) {
   const router = useRouter();
   const [videos, setVideos] = useState(initialVideos);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -63,6 +72,7 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
     () => selectedFiles.some((file) => file.size >= BIG_FILE_WARNING_BYTES),
     [selectedFiles]
   );
+  const uploadProgressLabel = storageMode === "bucket" ? "Uploading to bucket..." : "Streaming to volume...";
 
   const refreshInventory = async () => {
     const response = await fetch("/api/manage/videos", {
@@ -80,58 +90,6 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
     setVideos(payload.videos);
   };
 
-  const uploadVideoFile = (file: File, onProgress: (progress: number | null) => void) =>
-    new Promise<{
-      ok?: boolean;
-      error?: string;
-      fileName?: string;
-      bytesWritten?: number;
-    }>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.open("POST", "/api/manage/videos");
-      xhr.responseType = "text";
-      xhr.withCredentials = true;
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable && event.total > 0) {
-          onProgress(Math.round((event.loaded / event.total) * 100));
-          return;
-        }
-
-        onProgress(null);
-      };
-      xhr.onload = () => {
-        let payload: {
-          ok?: boolean;
-          error?: string;
-          fileName?: string;
-          bytesWritten?: number;
-        } = {};
-
-        try {
-          payload = JSON.parse(xhr.responseText) as typeof payload;
-        } catch {
-          // ignore parse issues and fall through to the status check below
-        }
-
-        if (xhr.status < 200 || xhr.status >= 300) {
-          reject(new Error(payload.error || `Upload failed with status ${xhr.status}.`));
-          return;
-        }
-
-        resolve(payload);
-      };
-      xhr.onerror = () => {
-        reject(new Error("Unable to upload video."));
-      };
-      xhr.onabort = () => {
-        reject(new Error("Upload canceled."));
-      };
-      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
-      xhr.setRequestHeader("X-Video-Filename", encodeURIComponent(file.name));
-      xhr.send(file);
-    });
-
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
       setMessage("Choose one or more video files first.");
@@ -139,7 +97,7 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
     }
 
     setLoading(true);
-    setMessage(`Uploading ${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} to ${assetRoot}...`);
+    setMessage(`Uploading ${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} to ${storageLabel}...`);
     setResults(
       selectedFiles.map((file) => ({
         fileName: file.name,
@@ -151,9 +109,119 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
 
     const nextResults: UploadResult[] = [];
 
+    const uploadToVolume = (file: File, onProgress: (progress: number | null) => void) =>
+      new Promise<UploadPayload>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.open("POST", "/api/manage/videos");
+        xhr.responseType = "text";
+        xhr.withCredentials = true;
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && event.total > 0) {
+            onProgress(Math.round((event.loaded / event.total) * 100));
+            return;
+          }
+
+          onProgress(null);
+        };
+        xhr.onload = () => {
+          let payload: UploadPayload = {};
+
+          try {
+            payload = JSON.parse(xhr.responseText) as typeof payload;
+          } catch {
+            // ignore parse issues and fall through to the status check below
+          }
+
+          if (xhr.status < 200 || xhr.status >= 300) {
+            reject(new Error(payload.error || `Upload failed with status ${xhr.status}.`));
+            return;
+          }
+
+          resolve(payload);
+        };
+        xhr.onerror = () => {
+          reject(new Error("Unable to upload video."));
+        };
+        xhr.onabort = () => {
+          reject(new Error("Upload canceled."));
+        };
+        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        xhr.setRequestHeader("X-Video-Filename", encodeURIComponent(file.name));
+        xhr.send(file);
+      });
+
+    const uploadToBucket = async (file: File, onProgress: (progress: number | null) => void) => {
+      const targetResponse = await fetch("/api/manage/videos/upload-target", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || "application/octet-stream",
+        }),
+      });
+
+      const targetPayload = (await targetResponse.json().catch(() => ({}))) as UploadPayload & {
+        uploadUrl?: string;
+        contentType?: string;
+      };
+
+      if (!targetResponse.ok || !targetPayload.ok || !targetPayload.uploadUrl) {
+        throw new Error(targetPayload.error || "Unable to prepare the bucket upload.");
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.open("PUT", targetPayload.uploadUrl as string);
+        xhr.responseType = "text";
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && event.total > 0) {
+            onProgress(Math.round((event.loaded / event.total) * 100));
+            return;
+          }
+
+          onProgress(null);
+        };
+        xhr.onload = () => {
+          if (xhr.status < 200 || xhr.status >= 300) {
+            reject(new Error(`Bucket upload failed with status ${xhr.status}.`));
+            return;
+          }
+
+          resolve();
+        };
+        xhr.onerror = () => {
+          reject(new Error("Unable to upload to the bucket. Check bucket CORS and access settings."));
+        };
+        xhr.onabort = () => {
+          reject(new Error("Upload canceled."));
+        };
+        xhr.setRequestHeader("Content-Type", targetPayload.contentType || file.type || "application/octet-stream");
+        xhr.send(file);
+      });
+
+      return {
+        ok: true,
+        fileName: targetPayload.fileName || file.name,
+        bytesWritten: file.size,
+        publicUrl: targetPayload.publicUrl ?? null,
+      };
+    };
+
+    const uploadVideoFile: (file: File, onProgress: (progress: number | null) => void) => Promise<UploadPayload> =
+      storageMode === "bucket" ? uploadToBucket : uploadToVolume;
+
     try {
       for (const [index, file] of selectedFiles.entries()) {
-        nextResults.push({ fileName: file.name, status: "uploading", message: "Streaming to volume...", progress: 0 });
+        nextResults.push({
+          fileName: file.name,
+          status: "uploading",
+          message: uploadProgressLabel,
+          progress: 0,
+        });
         setResults([...nextResults]);
 
         const updateCurrentResult = (patch: Partial<UploadResult>) => {
@@ -168,8 +236,7 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
         try {
           const payload = await uploadVideoFile(file, (progress) => {
             updateCurrentResult({
-              message:
-                progress === null ? "Streaming to volume..." : `${progress}% uploaded · ${formatBytes(file.size)}`,
+              message: progress === null ? uploadProgressLabel : `${progress}% uploaded · ${formatBytes(file.size)}`,
               progress,
             });
             setMessage(
@@ -191,7 +258,11 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
           updateCurrentResult({
             fileName: payload.fileName || file.name,
             status: "uploaded",
-            message: payload.bytesWritten ? `${formatBytes(payload.bytesWritten)} written` : "Uploaded.",
+            message: payload.publicUrl
+              ? `Uploaded · ${formatBytes(payload.bytesWritten ?? file.size)} · Public URL ready`
+              : payload.bytesWritten
+                ? `${formatBytes(payload.bytesWritten)} written`
+                : "Uploaded.",
             progress: 100,
           });
         } catch (error) {
@@ -219,13 +290,13 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
     <section className="surface-card video-upload-panel">
       <div className="video-upload-header">
         <div>
-          <p className="eyebrow">Railway volume</p>
-          <h2>Upload videos into {assetRoot}</h2>
+          <p className="eyebrow">{storageMode === "bucket" ? "Railway bucket" : "Railway volume"}</p>
+          <h2>Upload videos into {storageLabel}</h2>
           <p className="muted">
-            Select one or more files. The uploader streams each file directly to the mounted volume and preserves the
-            exact file name.
+            Select one or more files. The uploader preserves the exact file name and sends each file to the active
+            storage.
           </p>
-          {hasOversizedFiles ? (
+          {storageMode === "filesystem" && hasOversizedFiles ? (
             <p className="video-upload-warning">
               One or more selected files are larger than about 95 MB. If a file stalls through the proxied domain,
               try a smaller export or tell me and I’ll move the upload path off the proxy.
@@ -371,7 +442,7 @@ export function VideoUploadPanel({ initialVideos, assetRoot }: VideoUploadPanelP
       <div className="video-library">
         <div className="video-library-header">
           <span>Expected files</span>
-          <span>Status is based on the Railway volume contents.</span>
+          <span>Status is based on the active storage contents.</span>
         </div>
 
         <ul className="video-library-list">

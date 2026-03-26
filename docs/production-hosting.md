@@ -8,7 +8,7 @@
 - Private worker host: Railway worker service
 - Production lead database: libsql/Turso via `LEAD_DATABASE_URL` + `LEAD_DATABASE_AUTH_TOKEN`
 - Lead encryption key: `LEAD_ENCRYPTION_KEY`
-- Raw video asset root: `VIDEO_ASSET_ROOT`
+- Raw video storage: `VIDEO_BUCKET_*` for bucket mode, with `VIDEO_ASSET_ROOT` as the filesystem fallback and profile-photo volume root
 
 ## Why this setup
 
@@ -17,6 +17,7 @@
 - The current lead system already speaks libsql, so Turso keeps the production data path aligned with the app.
 - The site can grow into more internal apps later by adding more Railway services instead of rebuilding the stack.
 - The public web service can run in `NEXT_PUBLIC_PUBLIC_SITE_ONLY=true` mode so the umbrella site stays public-facing only.
+- Large raw videos are much easier to manage in S3-compatible bucket storage than through the app server or a Railway volume.
 
 ## Service split
 
@@ -41,7 +42,10 @@
 - `LEAD_DATABASE_URL` must point at the hosted libsql database
 - `LEAD_DATABASE_AUTH_TOKEN` is required for the remote libsql database
 - `LEAD_ENCRYPTION_KEY` must be a unique secret per environment
-- `VIDEO_ASSET_ROOT` should point at the mounted path or filesystem folder where you drop the raw source videos
+- `VIDEO_ASSET_ROOT` should point at the mounted path or filesystem folder used for the local fallback and profile photo volume
+- For big video files, set `VIDEO_BUCKET_NAME`, `VIDEO_BUCKET_REGION`, `VIDEO_BUCKET_ENDPOINT`, `VIDEO_BUCKET_ACCESS_KEY_ID`, and `VIDEO_BUCKET_SECRET_ACCESS_KEY`
+- If you want the public video route to redirect straight to the bucket URL, set `VIDEO_BUCKET_PUBLIC_BASE_URL`
+- `VIDEO_BUCKET_FORCE_PATH_STYLE` should usually stay `true` for Railway Buckets and other S3-compatible storage providers
 - `ADMIN_USERNAME`
 - `ADMIN_SESSION_SECRET`
 - `ADMIN_PASSWORD_SALT`
@@ -62,8 +66,9 @@ For local development, run `npm run setup:env` to generate a private `.env.local
 3. Create the hosted libsql database and copy the URL/token.
 4. Create the Railway web service and worker service from the GitHub repo.
 5. Set `NEXT_PUBLIC_SITE_URL` to the live domain.
-6. Set `VIDEO_ASSET_ROOT` to the Railway volume or host path that stores the raw video files.
-7. Verify:
+6. Set `VIDEO_ASSET_ROOT` to the Railway volume or host path used for the local fallback/profile photo volume.
+7. If you are storing big videos, set the `VIDEO_BUCKET_*` variables and configure bucket CORS so uploads from `manage.devcandoit.com` are allowed.
+8. Verify:
    - `/api/health`
    - `/admin/login`
    - `/api/admin/health`
@@ -73,6 +78,6 @@ For local development, run `npm run setup:env` to generate a private `.env.local
 
 - The public site should stay public; internal tools stay under `/admin` and `/leads`.
 - The public site should also run in `NEXT_PUBLIC_PUBLIC_SITE_ONLY=true` mode so those internal routes 404 on the umbrella deployment.
-- Large raw videos should stay out of git and live on the Railway host path or a mounted volume defined by `VIDEO_ASSET_ROOT`.
+- Large raw videos should stay out of git and live in bucket storage when possible; if you keep a filesystem fallback, use the Railway host path or mounted volume defined by `VIDEO_ASSET_ROOT`.
 - Add new internal webapps later as separate Railway services so each one can scale and restart independently.
 - The worker now ships with `tsx` in production so Railway can run it directly from the repo.

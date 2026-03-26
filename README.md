@@ -16,7 +16,7 @@ Marketing site and lead funnel for Devin Otto's portfolio + consulting business.
 - Background worker: Railway worker service
 - Production lead database: libsql/Turso
 - Lead-at-rest encryption key: `LEAD_ENCRYPTION_KEY`
-- Video asset root: `VIDEO_ASSET_ROOT`
+- Video storage: `VIDEO_BUCKET_*` for large files, with `VIDEO_ASSET_ROOT` as the local filesystem fallback and profile-photo volume root
 - Railway config files: `railway.web.json` and `railway.worker.json`
 
 See [docs/production-hosting.md](./docs/production-hosting.md) for the deploy checklist and environment variables.
@@ -37,10 +37,13 @@ The setup script seeds `.env.local` with generated admin/session/encryption valu
   - In production, the app defaults to public-site-only if this flag is missing.
 - Set `LEAD_DATABASE_URL` and `LEAD_DATABASE_AUTH_TOKEN`
 - Set `LEAD_ENCRYPTION_KEY`
-- Set `VIDEO_ASSET_ROOT` to the Railway volume or host path that contains the raw video files
+- Set `VIDEO_ASSET_ROOT` to the Railway volume or host path used for the local fallback/profile photo volume
+- For large video files, set `VIDEO_BUCKET_NAME`, `VIDEO_BUCKET_REGION`, `VIDEO_BUCKET_ENDPOINT`, `VIDEO_BUCKET_ACCESS_KEY_ID`, and `VIDEO_BUCKET_SECRET_ACCESS_KEY`
+- Optionally set `VIDEO_BUCKET_PUBLIC_BASE_URL` if you want `/api/videos/[slug]` to redirect directly to the public bucket URL
 - Set `ADMIN_USERNAME`, `ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD_SALT`, and `ADMIN_PASSWORD_HASH`
 - Optionally set `ADMIN_COOKIE_DOMAIN=.devcandoit.com` if you want to share the admin session across subdomains like `manage.devcandoit.com`
 - Set Gmail SMTP credentials if you want contact email delivery
+- If you use bucket mode, configure bucket CORS to allow uploads from `manage.devcandoit.com`
 
 ## Contact form email flow
 

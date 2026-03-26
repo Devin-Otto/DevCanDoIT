@@ -6,12 +6,13 @@ import { StructuredData } from "@/components/StructuredData";
 import { ProfilePhotoUploadPanel } from "@/components/ProfilePhotoUploadPanel";
 import { VideoUploadPanel } from "@/components/VideoUploadPanel";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
-import { listManagedVideos, getManagedVideoAssetRoot } from "@/lib/manage-videos.server";
+import { getProfilePhotoAssetRoot } from "@/lib/profile-photo.server";
+import { getManagedVideoStorageSummary, listManagedVideos } from "@/lib/manage-videos.server";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Manage Media",
-  description: "Private media manager for uploading video assets to the Railway volume.",
+  description: "Private media manager for uploading video assets to the site's storage.",
 };
 
 export const dynamic = "force-dynamic";
@@ -24,14 +25,15 @@ export default async function ManagePage() {
     redirect("/manage/login");
   }
 
-  const initialVideos = listManagedVideos();
-  const assetRoot = getManagedVideoAssetRoot();
+  const videoStorage = getManagedVideoStorageSummary();
+  const initialVideos = await listManagedVideos();
+  const profilePhotoAssetRoot = getProfilePhotoAssetRoot();
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: `${siteConfig.name} Media Manager`,
-    description: "Private media uploader for the Railway volume.",
+    description: "Private media uploader for the site video storage.",
     url: `${siteConfig.siteUrl}/manage`,
   };
 
@@ -42,10 +44,10 @@ export default async function ManagePage() {
       <section className="page-hero">
         <div className="section-copy section-intro">
           <p className="eyebrow">Private media manager</p>
-          <h1>Upload the raw videos into the Railway volume.</h1>
+          <h1>Upload the raw videos into the {videoStorage.description}.</h1>
           <p>
-            Use this page to place the showcase files into <code>{assetRoot}</code> so the public video carousel can
-            serve them.
+            Use this page to place the showcase files into <code>{videoStorage.label}</code> so the public video
+            carousel can serve them.
           </p>
         </div>
 
@@ -53,14 +55,18 @@ export default async function ManagePage() {
           <p className="eyebrow">Instructions</p>
           <h2>Match the exact filenames.</h2>
           <p className="muted">
-            The current site looks for the original filenames in the mounted volume. Rename your local files first if
+            The current site looks for the original filenames in the active storage. Rename your local files first if
             needed.
           </p>
         </aside>
       </section>
 
-      <ProfilePhotoUploadPanel assetRoot={assetRoot} />
-      <VideoUploadPanel initialVideos={initialVideos} assetRoot={assetRoot} />
+      <ProfilePhotoUploadPanel assetRoot={profilePhotoAssetRoot} />
+      <VideoUploadPanel
+        initialVideos={initialVideos}
+        storageLabel={videoStorage.label}
+        storageMode={videoStorage.mode}
+      />
     </main>
   );
 }
