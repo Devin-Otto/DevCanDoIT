@@ -211,14 +211,14 @@ export const appProjects = [
     nextStep: "Convert into a clean demo dashboard with sample data."
   },
   {
-    slug: "govio",
-    title: "Govio",
-    category: "GovTech / AI Assistant",
-    summary: "An AI assistant that helps small businesses find and pursue government contract opportunities.",
-    goal: "Simplify contracting workflows, opportunity matching, and next-step guidance.",
+    slug: "government-contracting-platform",
+    title: "Government Contracting Platform",
+    category: "GovTech / Contracting Platform",
+    summary: "A platform that helps small businesses discover government contracting opportunities, organize requirements, and move from lead to submission.",
+    goal: "Simplify opportunity matching, proposal tracking, and the steps needed to pursue contract work.",
     stack: ["React", "Next.js", "Retrieval", "Document parsing"],
     status: "Concept",
-    nextStep: "Create a clickable prototype plus one end-to-end user flow."
+    nextStep: "Create a clickable prototype and one end-to-end contract pursuit flow."
   },
   {
     slug: "telemidi-connect",
