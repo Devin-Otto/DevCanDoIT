@@ -30,6 +30,32 @@ See [docs/production-hosting.md](./docs/production-hosting.md) for the deploy ch
 
 The setup script seeds `.env.local` with generated admin/session/encryption values so you do not need to hardcode secrets in the repo. You can pass `--username`, `--password`, or `--force` to control the generated login if you want to override the defaults.
 
+## Pre-deploy checklist
+
+- `npm run lint` passes
+- `npm run build` passes
+- `NEXT_PUBLIC_SITE_URL` points at the live domain
+- `NEXT_PUBLIC_PUBLIC_SITE_ONLY=true` is set on the public web service
+- Public/private routes behave correctly:
+  - `/.env` is not exposed
+  - `/admin`, `/leads`, and `/manage` are locked down as intended
+- Private env vars stay on private services only:
+  - `ADMIN_*`
+  - `LEAD_*`
+  - bucket/video secrets
+- Security headers are present on the live site:
+  - `Strict-Transport-Security`
+  - `Content-Security-Policy`
+  - `X-Frame-Options`
+  - `X-Content-Type-Options`
+  - `Referrer-Policy`
+  - `Permissions-Policy`
+- `robots.txt` and `sitemap.xml` do not expose private routes
+- Public pages redirect cleanly to HTTPS
+- Upload flow works for a small file before trying large media
+- Worker service is online and not crash looping
+- If you use bucket mode, bucket CORS allows uploads from `manage.devcandoit.com`
+
 ## Production checklist
 
 - Set `NEXT_PUBLIC_SITE_URL` to the live domain
