@@ -51,6 +51,8 @@
 - `ADMIN_PASSWORD_SALT`
 - `ADMIN_PASSWORD_HASH`
 - `ADMIN_COOKIE_DOMAIN` is optional, but useful if you want to share the admin login across subdomains like `manage.devcandoit.com`
+- `VENUS_GATE_USERNAME` and `VENUS_GATE_PASSWORD` are optional, but when both are set the `/Venus` experience is protected by a private login page
+- `VENUS_GATE_SESSION_SECRET` is optional and can be separate from `ADMIN_SESSION_SECRET` if you want an independent Venus session secret
 - `GMAIL_USER`
 - `GMAIL_APP_PASSWORD`
 - `CONTACT_INBOX`

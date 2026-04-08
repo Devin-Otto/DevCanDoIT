@@ -8,15 +8,19 @@ interface AdminLoginFormProps {
   apiPath?: string;
   redirectTo?: string;
   initialMessage?: string;
+  initialUsername?: string;
+  submitLabel?: string;
 }
 
 export function AdminLoginForm({
   apiPath = "/api/admin/login",
   redirectTo = "/admin",
   initialMessage = "Private access only.",
+  initialUsername = "Devin",
+  submitLabel = "Sign in"
 }: AdminLoginFormProps) {
   const router = useRouter();
-  const [username, setUsername] = useState("Devin");
+  const [username, setUsername] = useState(initialUsername);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState(initialMessage);
   const [loading, setLoading] = useState(false);
@@ -79,7 +83,7 @@ export function AdminLoginForm({
       <div className="button-row">
         <button className="button" type="submit" disabled={loading}>
           {loading ? <LoaderCircle className="icon-spin" /> : <LogIn className="size-4" />}
-          Sign in
+          {submitLabel}
         </button>
       </div>
 

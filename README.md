@@ -27,6 +27,7 @@ See [docs/production-hosting.md](./docs/production-hosting.md) for the deploy ch
 - This public website repo should only contain the compiled Venus web build under `public/Venus/`.
 - From this repo, run `npm run sync:venus` to build the private Venus repo for `/Venus` and copy the generated files into the public site.
 - Commit the updated `public/Venus/` files here so Railway can deploy them.
+- If you want `/Venus` to be private, set `VENUS_GATE_USERNAME` and `VENUS_GATE_PASSWORD` in env vars. The public repo only stores the variable names, never the actual credentials.
 
 ## Local setup
 
@@ -47,9 +48,10 @@ The setup script seeds `.env.local` with generated admin/session/encryption valu
   - `/.env` is not exposed
   - `/admin`, `/leads`, and `/manage` are locked down as intended
 - Private env vars stay on private services only:
-  - `ADMIN_*`
-  - `LEAD_*`
-  - bucket/video secrets
+- `ADMIN_*`
+- `LEAD_*`
+- bucket/video secrets
+- `VENUS_GATE_*`
 - Security headers are present on the live site:
   - `Strict-Transport-Security`
   - `Content-Security-Policy`
@@ -75,6 +77,7 @@ The setup script seeds `.env.local` with generated admin/session/encryption valu
 - Optionally set `VIDEO_BUCKET_PUBLIC_BASE_URL` if you want `/api/videos/[slug]` to redirect directly to the public bucket URL
 - Set `ADMIN_USERNAME`, `ADMIN_SESSION_SECRET`, `ADMIN_PASSWORD_SALT`, and `ADMIN_PASSWORD_HASH`
 - Optionally set `ADMIN_COOKIE_DOMAIN=.devcandoit.com` if you want to share the admin session across subdomains like `manage.devcandoit.com`
+- Optionally set `VENUS_GATE_USERNAME`, `VENUS_GATE_PASSWORD`, and `VENUS_GATE_SESSION_SECRET` if you want `/Venus` behind a private login
 - Set Gmail SMTP credentials if you want contact email delivery
 - If you use bucket mode, configure bucket CORS to allow uploads from `manage.devcandoit.com`
 
