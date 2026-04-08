@@ -71,7 +71,10 @@ export default function ProjectsPage() {
       </section>
 
       <section id="projects-carousel" className="projects-carousel" aria-label="Project showcase carousel">
-        {appProjects.map((project, index) => (
+        {appProjects.map((project, index) => {
+          const liveHref = "liveHref" in project ? project.liveHref : undefined;
+
+          return (
           <article key={project.slug} className="surface-card project-carousel-card">
             <div className="project-carousel-topline">
               <span className="status-pill subtle">{project.status}</span>
@@ -98,12 +101,18 @@ export default function ProjectsPage() {
               ))}
             </div>
             <div className="button-row">
-              <a className="button" href={`/projects/${project.slug}`}>
+              {liveHref ? (
+                <a className="button" href={liveHref}>
+                  Open live app
+                </a>
+              ) : null}
+              <a className={liveHref ? "button button-ghost" : "button"} href={`/projects/${project.slug}`}>
                 Open project
               </a>
             </div>
           </article>
-        ))}
+          );
+        })}
       </section>
 
       <section className="surface-card projects-stack-card">

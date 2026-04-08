@@ -24,6 +24,16 @@ function getContentType(fileName: string) {
 
 export async function GET() {
   const photo = resolveProfilePhotoPath();
+
+  if (!photo.filePath) {
+    return new Response(photo.svgFallback ?? "", {
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "image/svg+xml"
+      }
+    });
+  }
+
   const stream = createReadStream(photo.filePath);
 
   return new Response(Readable.toWeb(stream) as unknown as BodyInit, {
@@ -33,4 +43,3 @@ export async function GET() {
     },
   });
 }
-

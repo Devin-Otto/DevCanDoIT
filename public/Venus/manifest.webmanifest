@@ -1,0 +1,17 @@
+{
+  "name": "VENUS Command Center",
+  "short_name": "VENUS",
+  "description": "Local-first command center for Venus songs, chords, links, and livestream setlists.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ab87ff",
+  "theme_color": "#cf8fff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

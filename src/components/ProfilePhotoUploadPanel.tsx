@@ -75,7 +75,7 @@ export function ProfilePhotoUploadPanel({ assetRoot }: ProfilePhotoUploadPanelPr
 
   useEffect(() => {
     void refreshPhoto().catch(() => {
-      // The preview still works because the public route falls back to the bundled image.
+      // The preview still works because the public route falls back to the generated placeholder.
     });
   }, []);
 
@@ -160,7 +160,7 @@ export function ProfilePhotoUploadPanel({ assetRoot }: ProfilePhotoUploadPanelPr
           </div>
           <div className="profile-photo-preview-copy">
             <span>Current preview</span>
-            <small>{photoMeta?.fileName ?? "profilephoto.jpeg"}</small>
+            <small>{photoMeta?.source === "volume" ? photoMeta.fileName : "Placeholder preview"}</small>
           </div>
         </div>
 
@@ -238,7 +238,7 @@ export function ProfilePhotoUploadPanel({ assetRoot }: ProfilePhotoUploadPanelPr
             </div>
             <div>
               <span className="lead-summary-label">Updated</span>
-              <strong>{photoMeta?.updatedAt ? new Date(photoMeta.updatedAt).toLocaleString() : "Fallback image"}</strong>
+              <strong>{photoMeta?.updatedAt ? new Date(photoMeta.updatedAt).toLocaleString() : "Placeholder image"}</strong>
             </div>
           </div>
         </div>

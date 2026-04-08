@@ -21,6 +21,13 @@ Marketing site and lead funnel for Devin Otto's portfolio + consulting business.
 
 See [docs/production-hosting.md](./docs/production-hosting.md) for the deploy checklist and environment variables.
 
+## VENUS integration
+
+- Keep the `Venus` source in its own **private** repo.
+- This public website repo should only contain the compiled Venus web build under `public/Venus/`.
+- From this repo, run `npm run sync:venus` to build the private Venus repo for `/Venus` and copy the generated files into the public site.
+- Commit the updated `public/Venus/` files here so Railway can deploy them.
+
 ## Local setup
 
 1. Run `npm run setup:env`

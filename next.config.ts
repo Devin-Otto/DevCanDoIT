@@ -62,6 +62,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: "/Venus",
+        destination: "/Venus/index.html",
+      },
+    ];
+  },
   outputFileTracingRoot: path.join(dirname),
   images: {
     unoptimized: true,

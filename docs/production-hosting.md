@@ -59,6 +59,13 @@
 Tip: generate `LEAD_ENCRYPTION_KEY` with something like `openssl rand -base64 32`, then keep the value unique per environment.
 For local development, run `npm run setup:env` to generate a private `.env.local` file without hardcoding secrets into the repo.
 
+## VENUS deployment model
+
+- Keep the Venus source code in a separate **private** repo.
+- Build Venus for the website path with `VITE_APP_BASE=/Venus/`.
+- Copy the compiled output into this repo at `public/Venus/`.
+- Railway deploys the public site repo only; it should not need access to the private Venus source repo.
+
 ## Deploy checklist
 
 1. Buy the domain.

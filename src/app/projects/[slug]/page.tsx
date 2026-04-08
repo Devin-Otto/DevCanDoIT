@@ -39,6 +39,8 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     notFound();
   }
 
+  const liveHref = "liveHref" in project ? project.liveHref : undefined;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
@@ -89,7 +91,12 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             ready.
           </p>
           <div className="button-row">
-            <Link className="button" href="/projects">
+            {liveHref ? (
+              <Link className="button" href={liveHref}>
+                Launch live app
+              </Link>
+            ) : null}
+            <Link className={liveHref ? "button button-ghost" : "button"} href="/projects">
               Back to projects
             </Link>
           </div>

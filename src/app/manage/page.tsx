@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 
 import { StructuredData } from "@/components/StructuredData";
 import { ProfilePhotoUploadPanel } from "@/components/ProfilePhotoUploadPanel";
+import { VenusImageUploadPanel } from "@/components/VenusImageUploadPanel";
 import { VideoUploadPanel } from "@/components/VideoUploadPanel";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
 import { getProfilePhotoAssetRoot } from "@/lib/profile-photo.server";
 import { getManagedVideoStorageSummary, listManagedVideos } from "@/lib/manage-videos.server";
 import { siteConfig } from "@/lib/site";
+import { getVenusImageAssetRoot } from "@/lib/venus-images.server";
 
 export const metadata: Metadata = {
   title: "Manage Media",
@@ -28,6 +30,7 @@ export default async function ManagePage() {
   const videoStorage = getManagedVideoStorageSummary();
   const initialVideos = await listManagedVideos();
   const profilePhotoAssetRoot = getProfilePhotoAssetRoot();
+  const venusImageAssetRoot = getVenusImageAssetRoot();
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -62,6 +65,7 @@ export default async function ManagePage() {
       </section>
 
       <ProfilePhotoUploadPanel assetRoot={profilePhotoAssetRoot} />
+      <VenusImageUploadPanel assetRoot={venusImageAssetRoot} />
       <VideoUploadPanel
         initialVideos={initialVideos}
         storageLabel={videoStorage.label}
