@@ -85,6 +85,12 @@ async function handleRequest(request: NextRequest, pathSegments: string[] | unde
     const requestedAsset = resolveRequestedAsset(pathSegments);
     const nextPath = request.nextUrl.pathname + request.nextUrl.search;
 
+    if (requestedAsset?.relativePath === "index.html" || requestedAsset?.relativePath.endsWith(".html")) {
+      const loginUrl = new URL("/venus-login", request.url);
+      loginUrl.searchParams.set("next", "/Venus");
+      return NextResponse.redirect(loginUrl);
+    }
+
     if (requestedAsset?.hasExtension) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
