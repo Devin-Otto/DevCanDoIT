@@ -191,17 +191,6 @@ export const projects = [
 
 export const appProjects = [
   {
-    slug: "venus-performance-library",
-    title: "VENUS Performance Library",
-    category: "Music Tech / Live Performance Workspace",
-    summary: "A local-first performance workspace for songs, chords, setlists, downloads, and livestream prep.",
-    goal: "Give a performer one place to organize repertoire, track performance flow, and launch resources fast.",
-    stack: ["React", "Vite", "Electron", "Local-first media"],
-    status: "Live build",
-    nextStep: "Keep the public /Venus website build synced from the private Venus source repo.",
-    liveHref: "/Venus"
-  },
-  {
     slug: "nexusos",
     title: "NexusOS / GlassOS",
     category: "Platform / Portfolio OS",

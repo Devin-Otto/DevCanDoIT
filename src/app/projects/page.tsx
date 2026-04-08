@@ -72,7 +72,7 @@ export default function ProjectsPage() {
 
       <section id="projects-carousel" className="projects-carousel" aria-label="Project showcase carousel">
         {appProjects.map((project, index) => {
-          const liveHref = "liveHref" in project ? project.liveHref : undefined;
+          const liveHref = "liveHref" in project && typeof project.liveHref === "string" ? project.liveHref : undefined;
 
           return (
           <article key={project.slug} className="surface-card project-carousel-card">

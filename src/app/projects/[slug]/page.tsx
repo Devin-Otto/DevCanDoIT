@@ -39,7 +39,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
     notFound();
   }
 
-  const liveHref = "liveHref" in project ? project.liveHref : undefined;
+  const liveHref = "liveHref" in project && typeof project.liveHref === "string" ? project.liveHref : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",
