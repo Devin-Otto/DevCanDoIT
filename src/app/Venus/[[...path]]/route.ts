@@ -24,6 +24,30 @@ const MIME_TYPES: Record<string, string> = {
   ".xml": "application/xml; charset=utf-8"
 };
 
+function getRedirectOrigin(request: NextRequest) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      // Fall through to forwarded headers.
+    }
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  if (forwardedHost) {
+    const forwardedProto = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(/:$/u, "");
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return request.nextUrl.origin;
+}
+
+function buildRedirectUrl(request: NextRequest, pathname: string) {
+  return new URL(pathname, getRedirectOrigin(request));
+}
+
 function getMimeType(filePath: string) {
   return MIME_TYPES[path.extname(filePath).toLowerCase()] ?? "application/octet-stream";
 }
@@ -86,7 +110,7 @@ async function handleRequest(request: NextRequest, pathSegments: string[] | unde
     const nextPath = request.nextUrl.pathname + request.nextUrl.search;
 
     if (requestedAsset?.relativePath === "index.html" || requestedAsset?.relativePath.endsWith(".html")) {
-      const loginUrl = new URL("/venus-login", request.url);
+      const loginUrl = buildRedirectUrl(request, "/venus-login");
       loginUrl.searchParams.set("next", "/Venus");
       return NextResponse.redirect(loginUrl);
     }
@@ -95,7 +119,7 @@ async function handleRequest(request: NextRequest, pathSegments: string[] | unde
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const loginUrl = new URL("/venus-login", request.url);
+    const loginUrl = buildRedirectUrl(request, "/venus-login");
     loginUrl.searchParams.set("next", nextPath);
     return NextResponse.redirect(loginUrl);
   }

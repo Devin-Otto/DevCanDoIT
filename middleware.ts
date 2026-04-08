@@ -8,6 +8,30 @@ async function isAuthed(request: NextRequest) {
   return verifyAdminSessionToken(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
 }
 
+function getRedirectOrigin(request: NextRequest) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      // Fall through to forwarded headers.
+    }
+  }
+
+  const forwardedHost = request.headers.get("x-forwarded-host") || request.headers.get("host");
+  if (forwardedHost) {
+    const forwardedProto = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(/:$/u, "");
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return request.nextUrl.origin;
+}
+
+function buildRedirectUrl(request: NextRequest, pathname: string) {
+  return new URL(pathname, getRedirectOrigin(request));
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authed = await isAuthed(request);
@@ -28,12 +52,13 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === "/venus-login") {
     if (!isVenusGateConfigured()) {
-      return NextResponse.redirect(new URL("/Venus", request.url));
+      return NextResponse.redirect(buildRedirectUrl(request, "/Venus"));
     }
 
     if (authed || venusAuthed) {
       const nextPath = request.nextUrl.searchParams.get("next");
-      return NextResponse.redirect(new URL(nextPath || "/Venus", request.url));
+      const safeNextPath = nextPath && nextPath.startsWith("/") ? nextPath : "/Venus";
+      return NextResponse.redirect(buildRedirectUrl(request, safeNextPath));
     }
 
     return NextResponse.next();
@@ -48,7 +73,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const loginUrl = new URL("/venus-login", request.url);
+    const loginUrl = buildRedirectUrl(request, "/venus-login");
     const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
     loginUrl.searchParams.set("next", nextPath);
     return NextResponse.redirect(loginUrl);
@@ -67,7 +92,7 @@ export async function middleware(request: NextRequest) {
 
     if (pathname === "/manage/login") {
       if (authed) {
-        return NextResponse.redirect(new URL("/manage", request.url));
+        return NextResponse.redirect(buildRedirectUrl(request, "/manage"));
       }
       return NextResponse.next();
     }
@@ -81,7 +106,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      return NextResponse.redirect(new URL("/manage/login", request.url));
+      return NextResponse.redirect(buildRedirectUrl(request, "/manage/login"));
     }
 
     return NextResponse.next();
@@ -107,23 +132,23 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === "/admin/login") {
     if (authed) {
-      return NextResponse.redirect(new URL("/admin", request.url));
+      return NextResponse.redirect(buildRedirectUrl(request, "/admin"));
     }
     return NextResponse.next();
   }
 
   if (pathname.startsWith("/admin")) {
     if (!authed) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(buildRedirectUrl(request, "/admin/login"));
     }
     return NextResponse.next();
   }
 
   if (pathname === "/leads") {
     if (!authed) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      return NextResponse.redirect(buildRedirectUrl(request, "/admin/login"));
     }
-    return NextResponse.redirect(new URL("/admin", request.url));
+    return NextResponse.redirect(buildRedirectUrl(request, "/admin"));
   }
 
   return NextResponse.next();
