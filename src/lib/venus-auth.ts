@@ -1,5 +1,6 @@
 export const VENUS_COOKIE_NAME = "devcandoit_venus_session";
 const DEFAULT_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+const DEFAULT_SYNC_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 90;
 
 function getSessionSecret() {
   const secret = process.env.VENUS_GATE_SESSION_SECRET?.trim() || process.env.ADMIN_SESSION_SECRET?.trim();
@@ -82,6 +83,20 @@ export async function issueVenusSessionToken(username: string): Promise<string> 
   return `${encoded}.${signature}`;
 }
 
+export async function issueVenusDesktopSyncToken(username: string): Promise<string> {
+  const payload = {
+    expiresAt: Date.now() + DEFAULT_SYNC_TOKEN_TTL_MS,
+    issuedAt: Date.now(),
+    kind: "venus-sync",
+    nonce: bytesToBase64Url(crypto.getRandomValues(new Uint8Array(12))),
+    username
+  };
+
+  const encoded = bytesToBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
+  const signature = await sign(encoded);
+  return `${encoded}.${signature}`;
+}
+
 export async function verifyVenusSessionToken(token: string | undefined | null): Promise<boolean> {
   if (!token || !isVenusGateConfigured()) {
     return false;
@@ -105,6 +120,49 @@ export async function verifyVenusSessionToken(token: string | undefined | null):
       expiresAt?: number;
       username?: string;
     };
+
+    if (normalizeUsername(payload.username) !== normalizeUsername(getVenusUsername())) {
+      return false;
+    }
+
+    if (typeof payload.expiresAt !== "number" || payload.expiresAt < Date.now()) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function verifyVenusDesktopSyncToken(token: string | undefined | null): Promise<boolean> {
+  if (!token || !isVenusGateConfigured()) {
+    return false;
+  }
+
+  const [encoded, signature] = token.split(".");
+  if (!encoded || !signature) {
+    return false;
+  }
+
+  const key = await getSessionKey();
+  const signatureBytes = base64UrlToBytes(signature);
+  const verified = await crypto.subtle.verify("HMAC", key, signatureBytes, new TextEncoder().encode(encoded));
+
+  if (!verified) {
+    return false;
+  }
+
+  try {
+    const payload = JSON.parse(new TextDecoder().decode(base64UrlToBytes(encoded))) as {
+      expiresAt?: number;
+      kind?: string;
+      username?: string;
+    };
+
+    if (payload.kind !== "venus-sync") {
+      return false;
+    }
 
     if (normalizeUsername(payload.username) !== normalizeUsername(getVenusUsername())) {
       return false;
