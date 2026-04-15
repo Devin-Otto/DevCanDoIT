@@ -20,6 +20,22 @@ const contentSecurityPolicy = [
   "upgrade-insecure-requests"
 ].join("; ");
 
+const telemidiContentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob:",
+  "font-src 'self' data:",
+  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline'",
+  "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com",
+  "frame-src 'self'",
+  "upgrade-insecure-requests",
+].join("; ");
+
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
@@ -54,6 +70,13 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/telemidi-connect/:path*",
+        headers: securityHeaders.map((header) => ({
+          key: header.key,
+          value: header.key === "Content-Security-Policy" ? telemidiContentSecurityPolicy : header.value,
+        })),
+      },
       {
         source: "/:path*",
         headers: securityHeaders.map((header) => ({

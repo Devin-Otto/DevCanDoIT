@@ -40,6 +40,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   }
 
   const liveHref = "liveHref" in project && typeof project.liveHref === "string" ? project.liveHref : undefined;
+  const isTileOS = project.slug === "tileos";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -58,6 +59,12 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
           <p className="eyebrow">Project</p>
           <h1>{project.title}</h1>
           <p>{project.summary}</p>
+          {isTileOS ? (
+            <p className="muted">
+              TileOS is the live public portfolio lab. Visitors can generate app drafts in their own workspace, while
+              admin controls decide which finished tiles get promoted into the shared showcase.
+            </p>
+          ) : null}
           <div className="tag-row">
             <span className="tag">{project.category}</span>
             <span className="tag">{project.status}</span>
@@ -87,13 +94,14 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             ))}
           </div>
           <p className="muted">
-            This page is set up so the project can become a hosted, fully functional app when the implementation is
-            ready.
+            {isTileOS
+              ? "The public portfolio links directly into the live TileOS runtime. Draft generation is public, while publish, unpublish, delete, and showcase ordering stay under admin control."
+              : "This page is set up so the project can become a hosted, fully functional app when the implementation is ready."}
           </p>
           <div className="button-row">
             {liveHref ? (
               <Link className="button" href={liveHref}>
-                Launch live app
+                {isTileOS ? "Launch TileOS" : "Launch live app"}
               </Link>
             ) : null}
             <Link className={liveHref ? "button button-ghost" : "button"} href="/projects">

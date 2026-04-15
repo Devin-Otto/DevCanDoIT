@@ -15,7 +15,8 @@ const config = [
       ".next-stale*/**",
       "node_modules/**",
       "next-env.d.ts",
-      "public/Venus/**"
+      "public/Venus/**",
+      "public/telemidi-connect/**"
     ]
   },
   ...compat.config(nextVitals),

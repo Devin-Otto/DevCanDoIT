@@ -5,7 +5,7 @@ import { DigitalCard } from "@/components/DigitalCard";
 import { HeroComposer } from "@/components/HeroComposer";
 import { LeadForm } from "@/components/LeadForm";
 import { StructuredData } from "@/components/StructuredData";
-import { faqs, industries, proofPoints, projects, services, siteConfig } from "@/lib/site";
+import { appProjects, faqs, industries, proofPoints, projects, services, siteConfig } from "@/lib/site";
 
 const engagementSteps = [
   {
@@ -33,6 +33,12 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
+  const tileOSProject = appProjects.find((project) => project.slug === "tileos");
+  const tileOSLiveHref =
+    tileOSProject && "liveHref" in tileOSProject && typeof tileOSProject.liveHref === "string"
+      ? tileOSProject.liveHref
+      : null;
+
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -118,6 +124,11 @@ export default function HomePage() {
           <Link className="button" href="/portfolio">
             View selected work
           </Link>
+          {tileOSLiveHref ? (
+            <Link className="button button-ghost" href={tileOSLiveHref}>
+              Launch TileOS
+            </Link>
+          ) : null}
         </div>
       </section>
 

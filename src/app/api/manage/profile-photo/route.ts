@@ -1,7 +1,5 @@
 import { createWriteStream, statSync } from "fs";
 import { mkdir, rename, rm } from "fs/promises";
-import { Readable } from "stream";
-import { pipeline } from "stream/promises";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,6 +11,12 @@ import {
   resolveProfilePhotoPath,
   sanitizeProfilePhotoFileName,
 } from "@/lib/profile-photo.server";
+import {
+  PROFILE_PHOTO_MAX_BYTES,
+  PayloadTooLargeError,
+  RequestInputError,
+  streamRequestBodyToFile,
+} from "@/lib/upload-stream.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,13 +28,13 @@ async function isAuthed(request: NextRequest) {
 function getFileNameFromHeader(request: NextRequest) {
   const encoded = request.headers.get("x-photo-filename");
   if (!encoded) {
-    throw new Error("Missing photo file name header.");
+    throw new RequestInputError("Missing photo file name header.");
   }
 
   try {
     return sanitizeProfilePhotoFileName(decodeURIComponent(encoded));
   } catch {
-    throw new Error("Invalid photo file name.");
+    throw new RequestInputError("Invalid photo file name.");
   }
 }
 
@@ -92,15 +96,8 @@ export async function POST(request: NextRequest) {
 
     await mkdir(getProfilePhotoAssetRoot(), { recursive: true });
 
-    if (!request.body) {
-      return NextResponse.json({ error: "Missing upload body." }, { status: 400 });
-    }
-
-    const readable = Readable.fromWeb(request.body as Parameters<typeof Readable.fromWeb>[0]);
-    const writable = createWriteStream(tempPath, { flags: "w" });
-
     try {
-      await pipeline(readable, writable);
+      await streamRequestBodyToFile(request, tempPath, PROFILE_PHOTO_MAX_BYTES);
       removeExistingProfilePhotoVariants();
       await rename(tempPath, targetPath);
     } catch (error) {
@@ -118,7 +115,15 @@ export async function POST(request: NextRequest) {
       contentType: getContentType(fileName),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to upload file.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (error instanceof PayloadTooLargeError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+
+    if (error instanceof RequestInputError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+
+    console.error("[manage/profile-photo] Upload failed", error);
+    return NextResponse.json({ error: "Unable to upload file right now." }, { status: 500 });
   }
 }

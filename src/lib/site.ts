@@ -191,14 +191,18 @@ export const projects = [
 
 export const appProjects = [
   {
-    slug: "nexusos",
-    title: "NexusOS / GlassOS",
+    slug: "tileos",
+    title: "TileOS",
     category: "Platform / Portfolio OS",
-    summary: "A glassmorphic meta-platform for organizing projects, tools, dashboards, and live applications.",
-    goal: "Become a personal OS, portfolio launcher, and experimentation hub.",
-    stack: ["React", "Next.js", "Tailwind", "Firebase"],
-    status: "Vision",
-    nextStep: "Build a polished public version with 4 to 6 live modules."
+    summary:
+      "A public-facing portfolio operating system where visitors can generate live app drafts, preview them in glass windows, and watch curated tiles graduate into the shared showcase.",
+    goal:
+      "Turn the portfolio into a live software environment instead of a static gallery, while keeping public drafts private until they are intentionally published.",
+    stack: ["Node", "Preact", "Gemini", "File-backed persistence", "Sandboxed runtimes"],
+    status: "Live public system",
+    nextStep:
+      "Keep improving generation quality, publish workflow polish, and the bridge between public visitor drafts and the curated showcase.",
+    liveHref: "https://tileos.devcandoit.com"
   },
   {
     slug: "life-command-center",
@@ -224,11 +228,12 @@ export const appProjects = [
     slug: "telemidi-connect",
     title: "TeleMIDI Connect",
     category: "Music Tech / Realtime Collaboration",
-    summary: "A remote collaboration tool for MIDI performance, pads, chat, presence, and live trigger mapping.",
-    goal: "Let remote users collaborate musically and trigger events in real time.",
-    stack: ["Firebase", "WebSockets", "React", "MIDI"],
-    status: "Defined",
-    nextStep: "Ship an MVP showing remote pad triggering and session presence."
+    summary: "A browser-based TeleMIDI beta for host-created sessions, remote control, WebMIDI output, keyboard scan, and live piano feedback.",
+    goal: "Let remote players collaborate musically through a public-safe browser flow while the MIDI hardware stays on the host machine.",
+    stack: ["Firebase", "WebMIDI", "React", "Realtime collaboration"],
+    status: "Public beta",
+    nextStep: "Refine session UX, add stronger observability, and expand mapped controls beyond the core host-and-remote path.",
+    liveHref: "/telemidi-connect"
   },
   {
     slug: "trading-platform",

@@ -1,0 +1,8 @@
+{
+  "slug": "telemidi-connect",
+  "title": "TeleMIDI Connect",
+  "summary": "A public-safe TeleMIDI beta with host-created join codes, WebMIDI output, keyboard scan, live piano visualization, and MIDI file playback.",
+  "basePath": "/telemidi-connect",
+  "visibility": "public",
+  "assetMode": "static"
+}
