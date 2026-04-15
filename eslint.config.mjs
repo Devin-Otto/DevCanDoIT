@@ -10,7 +10,13 @@ const compat = new FlatCompat({
 
 const config = [
   {
-    ignores: [".next/**", ".next-stale*/**", "node_modules/**", "next-env.d.ts"]
+    ignores: [
+      ".next/**",
+      ".next-stale*/**",
+      "node_modules/**",
+      "next-env.d.ts",
+      "public/Venus/**"
+    ]
   },
   ...compat.config(nextVitals),
   ...compat.config(nextTypescript)

@@ -10,13 +10,13 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self'",
-  "img-src 'self' data: blob: https:",
-  "media-src 'self' blob: https:",
+  "img-src 'self' data: blob: https://images.unsplash.com https://*.tile.openstreetmap.org",
+  "media-src 'self' blob:",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self' 'unsafe-inline'",
-  "connect-src 'self' https:",
-  "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
+  "connect-src 'self'",
+  "frame-src 'self'",
   "upgrade-insecure-requests"
 ].join("; ");
 
@@ -48,6 +48,7 @@ const securityHeaders = [
 ] as const;
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   experimental: {
     middlewareClientMaxBodySize: "100mb",
   },
