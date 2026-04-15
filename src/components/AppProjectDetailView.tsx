@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { StructuredData } from "@/components/StructuredData";
@@ -18,18 +19,33 @@ type AppProject = {
 type AppProjectDetailViewProps = {
   project: AppProject;
   hostedView?: boolean;
+  canonicalUrl?: string;
+  primaryHref?: string;
+  primaryLabel?: string;
+  children?: ReactNode;
 };
 
-export function AppProjectDetailView({ project, hostedView = false }: AppProjectDetailViewProps) {
+export function AppProjectDetailView({
+  project,
+  hostedView = false,
+  canonicalUrl,
+  primaryHref,
+  primaryLabel,
+  children
+}: AppProjectDetailViewProps) {
   const liveHref = typeof project.liveHref === "string" ? project.liveHref : undefined;
   const isTileOS = project.slug === "tileos";
+  const resolvedPrimaryHref =
+    primaryHref || (hostedView ? liveHref || siteConfig.siteUrl : liveHref);
+  const resolvedPrimaryLabel =
+    primaryLabel || (hostedView ? `Open ${project.title}` : isTileOS ? "Launch TileOS" : "Launch live app");
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
     name: project.title,
     description: project.summary,
-    url: `${siteConfig.siteUrl}/projects/${project.slug}`,
+    url: canonicalUrl || `${siteConfig.siteUrl}/projects/${project.slug}`,
   };
 
   return (
@@ -81,13 +97,9 @@ export function AppProjectDetailView({ project, hostedView = false }: AppProject
               : "This page is set up so the project can become a hosted, fully functional app when the implementation is ready."}
           </p>
           <div className="button-row">
-            {hostedView ? (
-              <Link className="button" href={siteConfig.siteUrl}>
-                Open DevCanDoIt
-              </Link>
-            ) : liveHref ? (
-              <Link className="button" href={liveHref}>
-                {isTileOS ? "Launch TileOS" : "Launch live app"}
+            {resolvedPrimaryHref ? (
+              <Link className="button" href={resolvedPrimaryHref}>
+                {resolvedPrimaryLabel}
               </Link>
             ) : null}
             <Link className={hostedView || liveHref ? "button button-ghost" : "button"} href="/projects">
@@ -96,6 +108,8 @@ export function AppProjectDetailView({ project, hostedView = false }: AppProject
           </div>
         </div>
       </section>
+
+      {children}
     </main>
   );
 }

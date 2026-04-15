@@ -6,12 +6,14 @@ DevCanDoIt is deployed as a public site with private support services.
 
 - Cloudflare provides DNS and CDN
 - Railway hosts the public web service and background worker
+- TileOS can run as a second Railway service and be proxied into `/tileos/app`
 - Large media can use bucket storage, with a local filesystem fallback for development
 
 ## Environment categories
 
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_PUBLIC_SITE_ONLY=true`
+- `TILEOS_INTERNAL_URL` if `/tileos/app` proxies to the TileOS container
 - `LEAD_DATABASE_URL`
 - `LEAD_DATABASE_AUTH_TOKEN`
 - `LEAD_ENCRYPTION_KEY`

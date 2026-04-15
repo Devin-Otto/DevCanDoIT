@@ -2163,6 +2163,71 @@ h3 {
   padding-top: 0;
 }
 
+.tileos-showcase {
+  padding-bottom: 5rem;
+}
+
+.tileos-showcase__frame {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tileos-showcase__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tileos-showcase__traffic {
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.tileos-showcase__traffic span {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.tileos-showcase__traffic span:nth-child(1) {
+  background: rgba(255, 95, 86, 0.95);
+}
+
+.tileos-showcase__traffic span:nth-child(2) {
+  background: rgba(255, 189, 46, 0.95);
+}
+
+.tileos-showcase__traffic span:nth-child(3) {
+  background: rgba(39, 201, 63, 0.95);
+}
+
+.tileos-showcase__address {
+  min-width: 0;
+  flex: 1;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(4, 7, 15, 0.8);
+  color: rgba(229, 236, 255, 0.72);
+  font-size: 0.88rem;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tileos-showcase__iframe {
+  width: 100%;
+  min-height: 900px;
+  border: 0;
+  display: block;
+  background: rgba(4, 7, 15, 0.96);
+}
+
 .video-upload-panel {
   display: grid;
   gap: 1.25rem;

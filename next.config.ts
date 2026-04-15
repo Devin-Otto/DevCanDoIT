@@ -36,6 +36,26 @@ const telemidiContentSecurityPolicy = [
   "upgrade-insecure-requests",
 ].join("; ");
 
+const tileosContentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: data:",
+  "font-src 'self' data:",
+  "style-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://esm.sh https://unpkg.com https://cdn.tailwindcss.com",
+  "connect-src 'self' https://esm.sh https://unpkg.com",
+  "frame-src 'self' blob:",
+  "worker-src 'self' blob:",
+  "upgrade-insecure-requests",
+].join("; ");
+
+const tileosPermissionsPolicy =
+  "camera=(), geolocation=(), microphone=(self), payment=(), usb=()";
+
 const securityHeaders = [
   {
     key: "Strict-Transport-Security",
@@ -71,6 +91,20 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/:path*",
+        headers: securityHeaders.map((header) => ({
+          key: header.key,
+          value: header.value,
+        })),
+      },
+      {
+        source: "/telemidi-connect",
+        headers: securityHeaders.map((header) => ({
+          key: header.key,
+          value: header.key === "Content-Security-Policy" ? telemidiContentSecurityPolicy : header.value,
+        })),
+      },
+      {
         source: "/telemidi-connect/:path*",
         headers: securityHeaders.map((header) => ({
           key: header.key,
@@ -78,10 +112,34 @@ const nextConfig: NextConfig = {
         })),
       },
       {
-        source: "/:path*",
+        source: "/tileos/app",
         headers: securityHeaders.map((header) => ({
           key: header.key,
-          value: header.value,
+          value:
+            header.key === "Content-Security-Policy"
+              ? tileosContentSecurityPolicy
+              : header.key === "Permissions-Policy"
+                ? tileosPermissionsPolicy
+                : header.value,
+        })),
+      },
+      {
+        source: "/tileos",
+        headers: securityHeaders.map((header) => ({
+          key: header.key,
+          value: header.key === "Permissions-Policy" ? tileosPermissionsPolicy : header.value,
+        })),
+      },
+      {
+        source: "/tileos/app/:path*",
+        headers: securityHeaders.map((header) => ({
+          key: header.key,
+          value:
+            header.key === "Content-Security-Policy"
+              ? tileosContentSecurityPolicy
+              : header.key === "Permissions-Policy"
+                ? tileosPermissionsPolicy
+                : header.value,
         })),
       },
     ];

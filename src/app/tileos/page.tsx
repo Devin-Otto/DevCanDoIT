@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AppProjectDetailView } from "@/components/AppProjectDetailView";
-import { getAppProject } from "@/lib/site";
+import { getAppProject, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "TileOS",
@@ -17,5 +17,34 @@ export default function TileOSPage() {
     notFound();
   }
 
-  return <AppProjectDetailView project={tileOSProject} hostedView />;
+  return (
+    <AppProjectDetailView
+      project={tileOSProject}
+      hostedView
+      canonicalUrl={`${siteConfig.siteUrl}/tileos`}
+      primaryHref="/tileos/app"
+      primaryLabel="Open full TileOS"
+    >
+      <section className="site-shell tileos-showcase">
+        <div className="surface-card tileos-showcase__frame">
+          <div className="tileos-showcase__toolbar">
+            <div className="tileos-showcase__traffic" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="tileos-showcase__address">devcandoit.com/tileos/app</div>
+          </div>
+          <iframe
+            className="tileos-showcase__iframe"
+            title="TileOS live app"
+            src="/tileos/app"
+            loading="eager"
+            allow="microphone; clipboard-read; clipboard-write"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        </div>
+      </section>
+    </AppProjectDetailView>
+  );
 }
