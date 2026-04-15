@@ -42,6 +42,14 @@ export const siteConfig = {
   ]
 } as const;
 
+export function normalizeRequestHost(host: string | null | undefined) {
+  return host?.trim().toLowerCase().replace(/:\d+$/u, "") ?? "";
+}
+
+export function isTileOSHost(host: string | null | undefined) {
+  return normalizeRequestHost(host) === "tileos.devcandoit.com";
+}
+
 export const heroStats = [
   {
     label: "What I build",
@@ -202,7 +210,7 @@ export const appProjects = [
     status: "Live public system",
     nextStep:
       "Keep improving generation quality, publish workflow polish, and the bridge between public visitor drafts and the curated showcase.",
-    liveHref: "https://tileos.devcandoit.com"
+    liveHref: "/tileos"
   },
   {
     slug: "life-command-center",
@@ -445,6 +453,10 @@ export const consultingOffers = [
     ]
   }
 ];
+
+export function getAppProject(slug: string) {
+  return appProjects.find((project) => project.slug === slug);
+}
 
 export const pricingPlans = [
   {

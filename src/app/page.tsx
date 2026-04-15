@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
+import { AppProjectDetailView } from "@/components/AppProjectDetailView";
 import { DigitalCard } from "@/components/DigitalCard";
 import { HeroComposer } from "@/components/HeroComposer";
 import { LeadForm } from "@/components/LeadForm";
 import { StructuredData } from "@/components/StructuredData";
-import { appProjects, faqs, industries, proofPoints, projects, services, siteConfig } from "@/lib/site";
+import { faqs, getAppProject, industries, isTileOSHost, proofPoints, projects, services, siteConfig } from "@/lib/site";
 
 const engagementSteps = [
   {
@@ -26,14 +28,34 @@ const engagementSteps = [
   }
 ];
 
-export const metadata: Metadata = {
-  title: "Portfolio and AI consulting for systems that feel real in the room",
-  description:
-    "DevCanDoIt helps businesses and hiring teams see Devin Otto's work through portfolio storytelling, consulting offers, and product-ready system framing."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const requestHost = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
 
-export default function HomePage() {
-  const tileOSProject = appProjects.find((project) => project.slug === "tileos");
+  if (isTileOSHost(requestHost)) {
+    const tileOSProject = getAppProject("tileos");
+    return {
+      title: tileOSProject?.title || "TileOS",
+      description: tileOSProject?.summary || "TileOS inside DevCanDoIt."
+    };
+  }
+
+  return {
+    title: "Portfolio and AI consulting for systems that feel real in the room",
+    description:
+      "DevCanDoIt helps businesses and hiring teams see Devin Otto's work through portfolio storytelling, consulting offers, and product-ready system framing."
+  };
+}
+
+export default async function HomePage() {
+  const requestHeaders = await headers();
+  const requestHost = requestHeaders.get("x-forwarded-host") || requestHeaders.get("host");
+  const tileOSProject = getAppProject("tileos");
+
+  if (isTileOSHost(requestHost) && tileOSProject) {
+    return <AppProjectDetailView project={tileOSProject} hostedView />;
+  }
+
   const tileOSLiveHref =
     tileOSProject && "liveHref" in tileOSProject && typeof tileOSProject.liveHref === "string"
       ? tileOSProject.liveHref
