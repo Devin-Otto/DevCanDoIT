@@ -6,8 +6,11 @@ const FIREBASE_APP_NAME = "devcandoit-telemidi";
 
 type ServiceAccountShape = {
   projectId?: string;
+  project_id?: string;
   clientEmail?: string;
+  client_email?: string;
   privateKey?: string;
+  private_key?: string;
 };
 
 function readServiceAccount() {
@@ -23,13 +26,18 @@ function readServiceAccount() {
     throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON.");
   }
 
-  if (!parsed.projectId || !parsed.clientEmail || !parsed.privateKey) {
+  const projectId = parsed.projectId || parsed.project_id;
+  const clientEmail = parsed.clientEmail || parsed.client_email;
+  const privateKey = parsed.privateKey || parsed.private_key;
+
+  if (!projectId || !clientEmail || !privateKey) {
     throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON is missing required service account fields.");
   }
 
   return {
-    ...parsed,
-    privateKey: parsed.privateKey.replace(/\\n/g, "\n"),
+    projectId,
+    clientEmail,
+    privateKey: privateKey.replace(/\\n/g, "\n"),
   };
 }
 
