@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
-import { createTelemidiSession, sanitizeDisplayName, verifyTelemidiIdToken } from "@/lib/telemidi-session.server";
+import {
+  createTelemidiSession,
+  describeTelemidiTokenVerificationFailure,
+  sanitizeDisplayName,
+  verifyTelemidiIdToken,
+} from "@/lib/telemidi-session.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,8 +49,9 @@ export async function POST(request: NextRequest) {
     let decodedToken;
     try {
       decodedToken = await verifyTelemidiIdToken(idToken);
-    } catch {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    } catch (error) {
+      const failure = describeTelemidiTokenVerificationFailure(error);
+      return NextResponse.json({ error: failure.message }, { status: failure.status });
     }
     const body = (await request.json().catch(() => null)) as { displayName?: unknown } | null;
     const displayName = sanitizeDisplayName(body?.displayName, "Host");

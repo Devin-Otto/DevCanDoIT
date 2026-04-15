@@ -43,6 +43,37 @@ export async function verifyTelemidiIdToken(idToken: string) {
   return getTelemidiAdminAuth().verifyIdToken(idToken);
 }
 
+export function describeTelemidiTokenVerificationFailure(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("firebase_service_account_json")) {
+    return {
+      message: "TeleMIDI server configuration is missing FIREBASE_SERVICE_ACCOUNT_JSON.",
+      status: 500,
+    };
+  }
+
+  if (
+    normalized.includes("incorrect \"aud\" claim") ||
+    normalized.includes("incorrect aud claim") ||
+    normalized.includes("incorrect \"iss\" claim") ||
+    normalized.includes("incorrect iss claim") ||
+    normalized.includes("project id") ||
+    normalized.includes("project-id")
+  ) {
+    return {
+      message: "TeleMIDI server is using a Firebase Admin credential from the wrong project.",
+      status: 500,
+    };
+  }
+
+  return {
+    message: "Unauthorized",
+    status: 401,
+  };
+}
+
 export async function createTelemidiSession(options: { uid: string; displayName: string }) {
   const db = getTelemidiAdminDb();
 
