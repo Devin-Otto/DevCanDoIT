@@ -47,9 +47,23 @@ export function describeTelemidiTokenVerificationFailure(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || "");
   const normalized = message.toLowerCase();
 
-  if (normalized.includes("firebase_service_account_json")) {
+  if (normalized.includes("is not configured")) {
     return {
       message: "TeleMIDI server configuration is missing FIREBASE_SERVICE_ACCOUNT_JSON.",
+      status: 500,
+    };
+  }
+
+  if (normalized.includes("is not valid json")) {
+    return {
+      message: "TeleMIDI server configuration has an invalid FIREBASE_SERVICE_ACCOUNT_JSON value.",
+      status: 500,
+    };
+  }
+
+  if (normalized.includes("is missing required service account fields")) {
+    return {
+      message: "TeleMIDI server configuration needs the full Firebase service account JSON, not a web app config.",
       status: 500,
     };
   }
