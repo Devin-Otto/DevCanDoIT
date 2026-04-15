@@ -30,17 +30,17 @@ const SLOT_DETAILS: Array<{
   slot: VenusImageSlot;
 }> = [
   {
-    description: "Used for the main artwork card on the Venus home screen.",
+    description: "Used for the main artwork card in the protected app.",
     label: "Center image",
     slot: "center"
   },
   {
-    description: "Used for the small portrait in the top-right corner of Venus.",
+    description: "Used for the small portrait in the top-right corner of the protected app.",
     label: "Profile image",
     slot: "profile"
   },
   {
-    description: "Used when the website build switches Venus to the uploaded background photo mode.",
+    description: "Used when the protected app switches to the uploaded background photo mode.",
     label: "Background image",
     slot: "background"
   }
@@ -210,8 +210,8 @@ export function VenusImageUploadPanel({ assetRoot }: VenusImageUploadPanelProps)
     <section className="surface-card profile-photo-panel">
       <div className="profile-photo-header">
         <div>
-          <p className="eyebrow">Venus images</p>
-          <h2>Upload the private images used by the public /Venus website build.</h2>
+          <p className="eyebrow">Protected app images</p>
+          <h2>Upload the private images used by the protected app build.</h2>
           <p className="muted">
             These files live in the site storage volume and are served through <code>/api/venus-images/[slot]</code>,
             so the public repository does not need to carry the raw photos.
@@ -273,7 +273,7 @@ export function VenusImageUploadPanel({ assetRoot }: VenusImageUploadPanelProps)
                 />
                 <CloudUpload className="size-6" />
                 <strong>Choose image</strong>
-                <span>JPEG, PNG, WebP, or AVIF. The filename is normalized per Venus slot.</span>
+                <span>JPEG, PNG, WebP, or AVIF. The filename is normalized per image slot.</span>
               </label>
 
               <div className="button-row">

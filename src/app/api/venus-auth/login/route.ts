@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     if (!isVenusGateConfigured()) {
-      return NextResponse.json({ error: "Venus access is not configured." }, { status: 503 });
+      return NextResponse.json({ error: "Private access is not configured." }, { status: 503 });
     }
 
     if (!assertAllowedOrigin(request)) {

@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     if (!isVenusGateConfigured()) {
-      return NextResponse.json({ error: "Venus access is not configured." }, { status: 503 });
+      return NextResponse.json({ error: "Private access is not configured." }, { status: 503 });
     }
 
     if (!assertAllowedOrigin(request)) {
@@ -42,6 +42,6 @@ export async function POST(request: NextRequest) {
       token: await issueVenusDesktopSyncToken(username)
     });
   } catch {
-    return NextResponse.json({ error: "Unable to sign in to Venus sync right now." }, { status: 500 });
+    return NextResponse.json({ error: "Unable to sign in to sync right now." }, { status: 500 });
   }
 }

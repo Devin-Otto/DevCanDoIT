@@ -6,8 +6,8 @@ import { AdminLoginForm } from "@/components/AdminLoginForm";
 import { VENUS_COOKIE_NAME, isVenusGateConfigured, verifyVenusSessionToken } from "@/lib/venus-auth";
 
 export const metadata: Metadata = {
-  title: "Venus Access",
-  description: "Private sign-in for the Venus experience."
+  title: "Private Access",
+  description: "Private sign-in for a protected workspace."
 };
 
 export const dynamic = "force-dynamic";
@@ -36,25 +36,25 @@ export default async function VenusLoginPage({ searchParams }: VenusLoginPagePro
     <main className="site-shell page-stack auth-page">
       <section className="page-hero">
         <div className="section-copy section-intro">
-          <p className="eyebrow">Private Venus access</p>
-          <h1>Enter the shared password to open Venus.</h1>
-          <p>This gate protects the private Venus workspace without exposing the credentials in the public repository.</p>
+          <p className="eyebrow">Private access</p>
+          <h1>Enter the shared password to continue.</h1>
+          <p>This gate protects the private workspace without exposing credentials in the public repository.</p>
         </div>
 
         <aside className="surface-card quote-card">
           <p className="eyebrow">Protected area</p>
           <h2>Only the invited viewer should have access.</h2>
-          <p className="muted">Once signed in, the browser keeps the Venus session so the app and its uploaded images load normally.</p>
+          <p className="muted">Once signed in, the browser keeps the session active so the protected app and its uploaded images load normally.</p>
         </aside>
       </section>
 
       <section className="lead-form-wrap">
         <AdminLoginForm
           apiPath="/api/venus-auth/login"
-          initialMessage="Private Venus access only."
+          initialMessage="Private access only."
           initialUsername=""
           redirectTo={nextPath}
-          submitLabel="Open Venus"
+          submitLabel="Continue"
         />
       </section>
     </main>

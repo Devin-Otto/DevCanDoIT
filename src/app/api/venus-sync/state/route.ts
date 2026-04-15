@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           current,
-          error: "Venus sync revision conflict. Pull latest state and retry."
+          error: "Sync revision conflict. Pull the latest state and retry."
         },
         { status: 409 }
       );
@@ -69,7 +69,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(await saveVenusSyncDocument(body, current.revision + 1));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to save Venus sync state.";
+    const message = error instanceof Error ? error.message : "Unable to save sync state.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

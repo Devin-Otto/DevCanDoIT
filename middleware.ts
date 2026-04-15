@@ -41,7 +41,8 @@ export async function middleware(request: NextRequest) {
     pathname === "/Venus" ||
     pathname.startsWith("/Venus/") ||
     pathname.startsWith("/api/venus-images") ||
-    pathname.startsWith("/api/venus-local-media");
+    pathname.startsWith("/api/venus-local-media") ||
+    pathname.startsWith("/api/venus-external-preview");
   const isInternalPath =
     pathname.startsWith("/admin") ||
     pathname === "/leads" ||
@@ -170,5 +171,6 @@ export const config = {
     "/api/venus-auth/:path*",
     "/api/venus-images/:path*",
     "/api/venus-local-media",
+    "/api/venus-external-preview",
   ],
 };

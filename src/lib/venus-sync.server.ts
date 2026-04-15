@@ -29,6 +29,17 @@ export interface VenusSyncResource {
   id: string;
   kind?: string;
   label?: string;
+  localSource?: {
+    downloadFamily?: "local" | "xminus" | "youtube";
+    downloadedAt?: string;
+    fileName?: string;
+    fileSizeBytes?: number;
+    formatId?: string;
+    formatLabel?: string;
+    mimeType?: string;
+    sourceFingerprint?: string;
+    sourceUrl?: string;
+  };
   provider?: string;
   songId: string;
   transposeNote?: string;
@@ -128,6 +139,38 @@ function sanitizeResource(value: unknown): VenusSyncResource | null {
     return null;
   }
 
+  const rawLocalSource =
+    resource.localSource && typeof resource.localSource === "object"
+      ? (resource.localSource as Record<string, unknown>)
+      : null;
+  const localSource: VenusSyncResource["localSource"] =
+    rawLocalSource &&
+    (sanitizeString(rawLocalSource.fileName) ||
+      sanitizeString(rawLocalSource.sourceFingerprint) ||
+      sanitizeString(rawLocalSource.sourceUrl))
+      ? {
+          downloadFamily:
+            rawLocalSource.downloadFamily === "local"
+              ? "local"
+              : rawLocalSource.downloadFamily === "xminus"
+                ? "xminus"
+                : rawLocalSource.downloadFamily === "youtube"
+                  ? "youtube"
+                  : undefined,
+          downloadedAt: sanitizeString(rawLocalSource.downloadedAt) || undefined,
+          fileName: sanitizeString(rawLocalSource.fileName) || undefined,
+          fileSizeBytes:
+            typeof rawLocalSource.fileSizeBytes === "number" && Number.isFinite(rawLocalSource.fileSizeBytes)
+              ? rawLocalSource.fileSizeBytes
+              : undefined,
+          formatId: sanitizeString(rawLocalSource.formatId) || undefined,
+          formatLabel: sanitizeString(rawLocalSource.formatLabel) || undefined,
+          mimeType: sanitizeString(rawLocalSource.mimeType) || undefined,
+          sourceFingerprint: sanitizeString(rawLocalSource.sourceFingerprint) || undefined,
+          sourceUrl: sanitizeString(rawLocalSource.sourceUrl) || undefined
+        }
+      : undefined;
+
   return {
     availability: resource.availability === "available" ? "available" : "metadata-only",
     chordImportError: sanitizeString(resource.chordImportError) || undefined,
@@ -137,6 +180,7 @@ function sanitizeResource(value: unknown): VenusSyncResource | null {
     id,
     kind: sanitizeString(resource.kind, "reference"),
     label: sanitizeString(resource.label),
+    localSource,
     provider: sanitizeString(resource.provider, "Reference"),
     songId,
     transposeNote: sanitizeString(resource.transposeNote) || undefined,
