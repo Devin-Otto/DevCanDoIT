@@ -1,4 +1,4 @@
-import { createWriteStream, statSync } from "fs";
+import { statSync } from "fs";
 import { mkdir, rename, rm } from "fs/promises";
 
 import { NextRequest, NextResponse } from "next/server";

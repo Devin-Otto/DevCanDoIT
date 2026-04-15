@@ -1,12 +1,16 @@
-import { createWriteStream, statSync } from "fs";
+import { statSync } from "fs";
 import { mkdir, rename, rm } from "fs/promises";
-import { Readable } from "stream";
-import { pipeline } from "stream/promises";
 
 import { NextRequest, NextResponse } from "next/server";
 
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
 import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
+import {
+  PayloadTooLargeError,
+  RequestInputError,
+  streamRequestBodyToFile,
+  VENUS_IMAGE_MAX_BYTES
+} from "@/lib/upload-stream.server";
 import {
   getVenusImageAssetRoot,
   isVenusImageSlot,
@@ -25,7 +29,7 @@ async function isAuthed(request: NextRequest) {
 function getSlot(context: RouteContext<"/api/manage/venus-images/[slot]">) {
   return context.params.then(({ slot }) => {
     if (!isVenusImageSlot(slot)) {
-      throw new Error("Unknown Venus image slot.");
+      throw new RequestInputError("Unknown Venus image slot.");
     }
 
     return slot;
@@ -35,13 +39,13 @@ function getSlot(context: RouteContext<"/api/manage/venus-images/[slot]">) {
 function getFileNameFromHeader(request: NextRequest, slot: Awaited<ReturnType<typeof getSlot>>) {
   const encoded = request.headers.get("x-photo-filename");
   if (!encoded) {
-    throw new Error("Missing photo file name header.");
+    throw new RequestInputError("Missing photo file name header.");
   }
 
   try {
     return sanitizeVenusImageFileName(slot, decodeURIComponent(encoded));
   } catch {
-    throw new Error("Invalid photo file name.");
+    throw new RequestInputError("Invalid photo file name.");
   }
 }
 
@@ -83,8 +87,12 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/mana
       }
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to load Venus image.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (error instanceof RequestInputError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+
+    console.error("[manage/venus-images] Metadata lookup failed", error);
+    return NextResponse.json({ error: "Unable to load Venus image right now." }, { status: 500 });
   }
 }
 
@@ -110,15 +118,8 @@ export async function POST(request: NextRequest, context: RouteContext<"/api/man
 
     await mkdir(getVenusImageAssetRoot(), { recursive: true });
 
-    if (!request.body) {
-      return NextResponse.json({ error: "Missing upload body." }, { status: 400 });
-    }
-
-    const readable = Readable.fromWeb(request.body as Parameters<typeof Readable.fromWeb>[0]);
-    const writable = createWriteStream(tempPath, { flags: "w" });
-
     try {
-      await pipeline(readable, writable);
+      await streamRequestBodyToFile(request, tempPath, VENUS_IMAGE_MAX_BYTES);
       removeExistingVenusImageVariants(slot);
       await rename(tempPath, targetPath);
     } catch (error) {
@@ -137,7 +138,15 @@ export async function POST(request: NextRequest, context: RouteContext<"/api/man
       targetPath
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to upload file.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (error instanceof PayloadTooLargeError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+
+    if (error instanceof RequestInputError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
+
+    console.error("[manage/venus-images] Upload failed", error);
+    return NextResponse.json({ error: "Unable to upload file right now." }, { status: 500 });
   }
 }

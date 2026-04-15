@@ -37,10 +37,11 @@ export async function GET(request: NextRequest) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
+    console.error("[api/admin/health] Health check failed", error);
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Health check failed.",
+        error: "Health check failed.",
       },
       { status: 500 },
     );
