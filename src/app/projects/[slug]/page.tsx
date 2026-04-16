@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     return {
       title: "TileOS",
       description:
-        "TileOS is the live public portfolio lab inside DevCanDoIt, where visitors can generate app drafts and explore the curated showcase."
+        "TileOS is a portfolio workspace inside DevCanDoIt, where visitors can generate app drafts and explore the curated showcase."
     };
   }
   const project = getAppProject(slug);

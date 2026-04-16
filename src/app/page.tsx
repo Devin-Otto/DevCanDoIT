@@ -56,10 +56,7 @@ export default async function HomePage() {
     return <AppProjectDetailView project={tileOSProject} hostedView />;
   }
 
-  const tileOSLiveHref =
-    tileOSProject && "liveHref" in tileOSProject && typeof tileOSProject.liveHref === "string"
-      ? tileOSProject.liveHref
-      : null;
+  const tileOSProjectHref = tileOSProject ? `/projects/${tileOSProject.slug}` : null;
 
   const structuredData = [
     {
@@ -146,9 +143,9 @@ export default async function HomePage() {
           <Link className="button" href="/portfolio">
             View selected work
           </Link>
-          {tileOSLiveHref ? (
-            <Link className="button button-ghost" href={tileOSLiveHref}>
-              Launch TileOS
+          {tileOSProjectHref ? (
+            <Link className="button button-ghost" href={tileOSProjectHref}>
+              Open project
             </Link>
           ) : null}
         </div>

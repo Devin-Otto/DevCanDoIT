@@ -38,7 +38,8 @@ export function AppProjectDetailView({
   const resolvedPrimaryHref =
     primaryHref || (hostedView ? liveHref || siteConfig.siteUrl : liveHref);
   const resolvedPrimaryLabel =
-    primaryLabel || (hostedView ? `Open ${project.title}` : isTileOS ? "Launch TileOS" : "Launch live app");
+    primaryLabel ||
+    (hostedView ? (isTileOS ? "Open project" : `Open ${project.title}`) : isTileOS ? "Open project" : "Launch live app");
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -54,13 +55,13 @@ export function AppProjectDetailView({
 
       <section className="page-hero">
         <div className="section-copy section-intro">
-          <p className="eyebrow">{hostedView ? "Live app" : "Project"}</p>
+          <p className="eyebrow">{hostedView ? (isTileOS ? "Open project" : "Live app") : "Project"}</p>
           <h1>{project.title}</h1>
           <p>{project.summary}</p>
           {isTileOS ? (
             <p className="muted">
-              TileOS is the live public portfolio lab. Visitors can generate app drafts in their own workspace, while
-              admin controls decide which finished tiles get promoted into the shared showcase.
+              TileOS is a portfolio workspace inside DevCanDoIt. Visitors can generate app drafts in their own
+              workspace, while admin controls decide which finished tiles get promoted into the shared showcase.
             </p>
           ) : null}
           <div className="tag-row">
@@ -93,7 +94,7 @@ export function AppProjectDetailView({
           </div>
           <p className="muted">
             {isTileOS
-              ? "The public portfolio links directly into the live TileOS runtime. Draft generation is public, while publish, unpublish, delete, and showcase ordering stay under admin control."
+              ? "The public portfolio links directly into the TileOS workspace. Draft generation stays scoped to the project, while publish, unpublish, delete, and showcase ordering stay under admin control."
               : "This page is set up so the project can become a hosted, fully functional app when the implementation is ready."}
           </p>
           <div className="button-row">

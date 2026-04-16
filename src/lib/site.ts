@@ -199,18 +199,28 @@ export const projects = [
 
 export const appProjects = [
   {
+    slug: "telemidi-connect",
+    title: "TeleMIDI Connect",
+    category: "Music Tech / Realtime Collaboration",
+    summary: "A browser-based TeleMIDI beta for host-created sessions, remote control, WebMIDI output, keyboard scan, and live piano feedback.",
+    goal: "Let remote players collaborate musically through a public-safe browser flow while the MIDI hardware stays on the host machine.",
+    stack: ["Firebase", "WebMIDI", "React", "Realtime collaboration"],
+    status: "Public beta",
+    nextStep: "Refine session UX, add stronger observability, and expand mapped controls beyond the core host-and-remote path.",
+    liveHref: "/telemidi-connect"
+  },
+  {
     slug: "tileos",
     title: "TileOS",
     category: "Platform / Portfolio OS",
     summary:
-      "A public-facing portfolio operating system where visitors can generate live app drafts, preview them in glass windows, and watch curated tiles graduate into the shared showcase.",
+      "A public-facing portfolio workspace where visitors can generate app drafts, preview them in glass windows, and watch curated tiles graduate into the shared showcase.",
     goal:
-      "Turn the portfolio into a live software environment instead of a static gallery, while keeping public drafts private until they are intentionally published.",
+      "Turn the portfolio into a guided software environment instead of a static gallery, while keeping public drafts private until they are intentionally published.",
     stack: ["Node", "Preact", "Gemini", "File-backed persistence", "Sandboxed runtimes"],
-    status: "Live public system",
+    status: "Open project",
     nextStep:
-      "Keep improving generation quality, publish workflow polish, and the bridge between public visitor drafts and the curated showcase.",
-    liveHref: "/tileos"
+      "Keep improving generation quality, publish workflow polish, and the bridge between public visitor drafts and the curated showcase."
   },
   {
     slug: "life-command-center",
@@ -231,17 +241,6 @@ export const appProjects = [
     stack: ["React", "Next.js", "Retrieval", "Document parsing"],
     status: "Concept",
     nextStep: "Create a clickable prototype and one end-to-end contract pursuit flow."
-  },
-  {
-    slug: "telemidi-connect",
-    title: "TeleMIDI Connect",
-    category: "Music Tech / Realtime Collaboration",
-    summary: "A browser-based TeleMIDI beta for host-created sessions, remote control, WebMIDI output, keyboard scan, and live piano feedback.",
-    goal: "Let remote players collaborate musically through a public-safe browser flow while the MIDI hardware stays on the host machine.",
-    stack: ["Firebase", "WebMIDI", "React", "Realtime collaboration"],
-    status: "Public beta",
-    nextStep: "Refine session UX, add stronger observability, and expand mapped controls beyond the core host-and-remote path.",
-    liveHref: "/telemidi-connect"
   },
   {
     slug: "trading-platform",

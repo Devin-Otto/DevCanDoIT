@@ -7,7 +7,7 @@ import { getAppProject, siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "TileOS",
   description:
-    "TileOS is the live public portfolio lab inside DevCanDoIt, where visitors can generate app drafts and explore the curated showcase."
+    "TileOS is a portfolio workspace inside DevCanDoIt, where visitors can generate app drafts and explore the curated showcase."
 };
 
 export default function TileOSPage() {
@@ -23,7 +23,7 @@ export default function TileOSPage() {
       hostedView
       canonicalUrl={`${siteConfig.siteUrl}/tileos`}
       primaryHref="/tileos/app"
-      primaryLabel="Open full TileOS"
+      primaryLabel="Open project"
     >
       <section className="site-shell tileos-showcase">
         <div className="surface-card tileos-showcase__frame">
@@ -37,7 +37,7 @@ export default function TileOSPage() {
           </div>
           <iframe
             className="tileos-showcase__iframe"
-            title="TileOS live app"
+            title="TileOS project preview"
             src="/tileos/app"
             loading="eager"
             allow="microphone; clipboard-read; clipboard-write"
