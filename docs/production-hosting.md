@@ -9,6 +9,13 @@ DevCanDoIt is deployed as a public site with private support services.
 - TileOS can run as a second Railway service and be proxied into `/tileos/app`
 - Large media can use bucket storage, with a local filesystem fallback for development
 
+## Railway service config
+
+- The public web service should use `/railway.web.json`
+- The lead worker service should use `/railway.worker.json`
+- The worker build command should stay `npm ci` so Railway does not run `next build` for the background worker
+- The web service still needs `NEXT_PUBLIC_SITE_URL` set in production because the site build now fails fast when that value is missing
+
 ## Environment categories
 
 - `NEXT_PUBLIC_SITE_URL`

@@ -1,5 +1,8 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "buildCommand": "npm ci"
+  },
   "deploy": {
     "startCommand": "npm run worker:leads",
     "restartPolicyType": "ALWAYS"
