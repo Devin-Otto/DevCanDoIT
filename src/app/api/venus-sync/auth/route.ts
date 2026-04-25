@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
+import { getAuthSessionMetadata } from "@/lib/auth-state";
+import { assertAllowedOrigin, assertRateLimit, getClientIp } from "@/lib/request-security";
 import {
   isVenusGateConfigured,
   issueVenusDesktopSyncToken,
+  VENUS_SYNC_MAX_AGE_SECONDS,
   verifyVenusCredentials
 } from "@/lib/venus-auth";
 
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const rateLimit = assertRateLimit(request, "venus-sync-login", { limit: 8, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await assertRateLimit(request, "venus-sync-login", { limit: 8, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.ok) {
       return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429 });
     }
@@ -39,7 +41,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      token: await issueVenusDesktopSyncToken(username)
+      expiresInSeconds: VENUS_SYNC_MAX_AGE_SECONDS,
+      token: await issueVenusDesktopSyncToken(
+        username,
+        getAuthSessionMetadata({
+          ipAddress: getClientIp(request),
+          userAgent: request.headers.get("user-agent"),
+        }),
+      )
     });
   } catch {
     return NextResponse.json({ error: "Unable to sign in to sync right now." }, { status: 500 });

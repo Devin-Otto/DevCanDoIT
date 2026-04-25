@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ADMIN_COOKIE_NAME, getAdminCookieDomain, issueAdminSessionToken } from "@/lib/admin-auth";
+import {
+  ADMIN_COOKIE_NAME,
+  ADMIN_SESSION_MAX_AGE_SECONDS,
+  getAdminCookieDomain,
+  issueAdminSessionToken,
+} from "@/lib/admin-auth";
+import { getAuthSessionMetadata } from "@/lib/auth-state";
 import { verifyAdminCredentials } from "@/lib/admin-credentials.server";
-import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
+import { assertAllowedOrigin, assertRateLimit, getClientIp } from "@/lib/request-security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const rateLimit = assertRateLimit(request, "admin-login", { limit: 5, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await assertRateLimit(request, "admin-login", { limit: 5, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.ok) {
       return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429 });
     }
@@ -33,12 +39,18 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set({
       name: ADMIN_COOKIE_NAME,
-      value: await issueAdminSessionToken(username),
+      value: await issueAdminSessionToken(
+        username,
+        getAuthSessionMetadata({
+          ipAddress: getClientIp(request),
+          userAgent: request.headers.get("user-agent"),
+        }),
+      ),
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 12,
+      maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
       domain: getAdminCookieDomain(),
     });
 

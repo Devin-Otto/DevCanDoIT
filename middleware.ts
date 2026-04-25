@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
 import { isPublicSiteOnly } from "@/lib/runtime-flags";
-import { isVenusGateConfigured, VENUS_COOKIE_NAME, verifyVenusSessionToken } from "@/lib/venus-auth";
+ 
+const ADMIN_COOKIE_NAME = "devcandoit_admin_session";
+const VENUS_COOKIE_NAME = "devcandoit_venus_session";
 
-async function isAuthed(request: NextRequest) {
-  return verifyAdminSessionToken(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
+function isVenusGateConfigured() {
+  return Boolean(
+    process.env.VENUS_GATE_USERNAME?.trim() &&
+      ((process.env.VENUS_GATE_PASSWORD_SALT?.trim() && process.env.VENUS_GATE_PASSWORD_HASH?.trim()) ||
+        process.env.VENUS_GATE_PASSWORD?.trim()),
+  );
+}
+
+function hasAdminSessionCookie(request: NextRequest) {
+  return Boolean(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
+}
+
+function hasVenusSessionCookie(request: NextRequest) {
+  return Boolean(request.cookies.get(VENUS_COOKIE_NAME)?.value);
+}
+
+function hasVenusBearerAuth(request: NextRequest) {
+  const authorization = request.headers.get("authorization") ?? "";
+  return /^Bearer\s+\S+/iu.test(authorization);
 }
 
 function getRedirectOrigin(request: NextRequest) {
@@ -34,12 +52,15 @@ function buildRedirectUrl(request: NextRequest, pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const authed = await isAuthed(request);
-  const venusAuthed = await verifyVenusSessionToken(request.cookies.get(VENUS_COOKIE_NAME)?.value);
+  const authed = hasAdminSessionCookie(request);
+  const venusAuthed = hasVenusSessionCookie(request);
+  const venusBearerAuthed = hasVenusBearerAuth(request);
   const isApiPath = pathname.startsWith("/api/");
   const isVenusPath =
     pathname === "/Venus" ||
     pathname.startsWith("/Venus/") ||
+    pathname.startsWith("/venus-overlay") ||
+    pathname.startsWith("/api/venus-overlay") ||
     pathname.startsWith("/api/venus-images") ||
     pathname.startsWith("/api/venus-local-media") ||
     pathname.startsWith("/api/venus-external-preview");
@@ -69,7 +90,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (isVenusPath && isVenusGateConfigured() && !authed && !venusAuthed) {
+  if (isVenusPath && isVenusGateConfigured() && !authed && !venusAuthed && !(isApiPath && venusBearerAuthed)) {
     if (isApiPath) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -164,11 +185,14 @@ export const config = {
     "/leads",
     "/Venus",
     "/Venus/:path*",
+    "/venus-overlay",
+    "/venus-overlay/:path*",
     "/venus-login",
     "/api/leads/:path*",
     "/api/admin/:path*",
     "/api/manage/:path*",
     "/api/venus-auth/:path*",
+    "/api/venus-overlay/:path*",
     "/api/venus-images/:path*",
     "/api/venus-local-media",
     "/api/venus-external-preview",

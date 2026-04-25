@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
+import { serverErrorJson } from "@/lib/api-errors";
 import { DEFAULT_ORIGIN, DEFAULT_SCAN_LIMIT, DEFAULT_SCAN_RADIUS_METERS } from "@/lib/lead-types";
 import { createLeadScanJob } from "@/lib/lead-finder";
 import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const rateLimit = assertRateLimit(request, "lead-scan", { limit: 4, windowMs: 10 * 60 * 1000 });
+    const rateLimit = await assertRateLimit(request, "lead-scan", { limit: 4, windowMs: 10 * 60 * 1000 });
     if (!rateLimit.ok) {
       return NextResponse.json({ error: "Please wait before starting another scan." }, { status: 429 });
     }
@@ -52,11 +53,10 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json({ job }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unable to scan nearby businesses.",
-      },
-      { status: 500 },
-    );
+    return serverErrorJson({
+      error,
+      fallbackMessage: "Unable to scan nearby businesses.",
+      route: "leads/scan",
+    });
   }
 }

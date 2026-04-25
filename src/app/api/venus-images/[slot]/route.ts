@@ -2,7 +2,10 @@ import { createReadStream } from "fs";
 import { extname } from "path";
 import { Readable } from "stream";
 
+import { NextRequest, NextResponse } from "next/server";
+
 import { isVenusImageSlot, resolveVenusImagePath } from "@/lib/venus-images.server";
+import { isVenusAuthorizedRequest } from "@/lib/venus-access";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +27,11 @@ function getContentType(fileName: string) {
   }
 }
 
-export async function GET(_request: Request, context: RouteContext<"/api/venus-images/[slot]">) {
+export async function GET(request: NextRequest, context: RouteContext<"/api/venus-images/[slot]">) {
+  if (!(await isVenusAuthorizedRequest(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { slot } = await context.params;
 
   if (!isVenusImageSlot(slot)) {

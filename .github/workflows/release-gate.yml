@@ -9,9 +9,16 @@ on:
 jobs:
   verify-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,6 +31,12 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Security tests
+        run: npm run test:security
+
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Build
         run: npm run build

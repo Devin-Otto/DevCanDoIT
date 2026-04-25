@@ -29,7 +29,7 @@ export const siteConfig = {
     }
 
     if (process.env.NODE_ENV === "production") {
-      console.warn("NEXT_PUBLIC_SITE_URL is not set. Falling back to the local dev URL.");
+      throw new Error("NEXT_PUBLIC_SITE_URL must be set in production.");
     }
     return "http://localhost:7261";
   })(),

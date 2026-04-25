@@ -29,7 +29,7 @@ Instead, the general pattern is:
 ### Public repo
 
 Path:
-- `/Users/devinotto/Desktop/CODE/DevCanDoIT`
+- `<public-repo-root>/DevCanDoIT`
 
 Responsibilities:
 - public site pages
@@ -42,7 +42,7 @@ Responsibilities:
 ### Private project repos
 
 Examples:
-- `/Users/devinotto/Desktop/CODE/Venus`
+- `<private-repo-root>/Venus`
 - future private product repos
 
 Responsibilities:

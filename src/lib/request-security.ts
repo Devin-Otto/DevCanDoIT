@@ -1,49 +1,45 @@
 import type { NextRequest } from "next/server";
 
-import { getAdminCookieDomain } from "@/lib/admin-auth";
+import { checkPersistentRateLimit } from "@/lib/auth-state";
 
-const rateLimitStore = globalThis as typeof globalThis & {
-  __devcandoitRateLimit?: Map<string, { count: number; resetAt: number }>;
-};
+function getConfiguredOrigins(request: NextRequest) {
+  const configuredOrigins = (process.env.TRUSTED_MUTATION_ORIGINS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const origins = new Set<string>();
 
-function getRateLimitMap() {
-  if (!rateLimitStore.__devcandoitRateLimit) {
-    rateLimitStore.__devcandoitRateLimit = new Map();
-  }
-
-  return rateLimitStore.__devcandoitRateLimit;
-}
-
-function getClientIp(request: NextRequest) {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
-    "local"
-  );
-}
-
-function getAllowedOrigin(request: NextRequest) {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configured) {
+  for (const origin of configuredOrigins) {
     try {
-      return new URL(configured).origin;
+      origins.add(new URL(origin).origin);
     } catch {
-      // ignore invalid configuration and fall back to the request origin
+      // Ignore invalid entries so one bad value does not disable all checks.
     }
   }
 
-  return request.nextUrl.origin;
+  const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (publicSiteUrl) {
+    try {
+      origins.add(new URL(publicSiteUrl).origin);
+    } catch {
+      // Ignore invalid configuration here. site.ts will fail fast in production.
+    }
+  }
+
+  if (process.env.NODE_ENV !== "production" && origins.size === 0) {
+    origins.add(request.nextUrl.origin);
+  }
+
+  return origins;
 }
 
-function getAdminCookieDomainRoot() {
-  return getAdminCookieDomain()?.replace(/^\./, "").trim().toLowerCase() || undefined;
-}
-
-function isHostnameUnderDomain(hostname: string, domain: string) {
-  const normalizedHostname = hostname.trim().toLowerCase();
-  const normalizedDomain = domain.trim().toLowerCase();
-
-  return normalizedHostname === normalizedDomain || normalizedHostname.endsWith(`.${normalizedDomain}`);
+export function getClientIp(request: NextRequest) {
+  return (
+    request.headers.get("cf-connecting-ip")?.trim() ||
+    request.headers.get("x-real-ip")?.trim() ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "local"
+  );
 }
 
 export function assertAllowedOrigin(request: NextRequest): boolean {
@@ -54,41 +50,16 @@ export function assertAllowedOrigin(request: NextRequest): boolean {
 
   try {
     const parsed = new URL(origin);
-    if (parsed.origin === getAllowedOrigin(request)) {
-      return true;
-    }
-
-    const adminCookieDomain = getAdminCookieDomainRoot();
-    if (adminCookieDomain && isHostnameUnderDomain(parsed.hostname, adminCookieDomain)) {
-      return true;
-    }
-
-    return false;
+    return getConfiguredOrigins(request).has(parsed.origin);
   } catch {
     return false;
   }
 }
 
-export function assertRateLimit(
+export async function assertRateLimit(
   request: NextRequest,
   key: string,
   options: { limit: number; windowMs: number },
 ) {
-  const map = getRateLimitMap();
-  const bucketKey = `${key}:${getClientIp(request)}`;
-  const now = Date.now();
-  const bucket = map.get(bucketKey);
-
-  if (!bucket || bucket.resetAt <= now) {
-    map.set(bucketKey, { count: 1, resetAt: now + options.windowMs });
-    return { ok: true, remaining: options.limit - 1 };
-  }
-
-  if (bucket.count >= options.limit) {
-    return { ok: false, remaining: 0, retryAt: bucket.resetAt };
-  }
-
-  bucket.count += 1;
-  map.set(bucketKey, bucket);
-  return { ok: true, remaining: options.limit - bucket.count };
+  return checkPersistentRateLimit(`${key}:${getClientIp(request)}`, options);
 }

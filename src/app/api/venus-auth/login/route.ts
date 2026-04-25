@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getAdminCookieDomain } from "@/lib/admin-auth";
-import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
-import { isVenusGateConfigured, issueVenusSessionToken, VENUS_COOKIE_NAME, verifyVenusCredentials } from "@/lib/venus-auth";
+import { getAuthSessionMetadata } from "@/lib/auth-state";
+import { assertAllowedOrigin, assertRateLimit, getClientIp } from "@/lib/request-security";
+import {
+  isVenusGateConfigured,
+  issueVenusSessionToken,
+  VENUS_COOKIE_NAME,
+  VENUS_SESSION_MAX_AGE_SECONDS,
+  verifyVenusCredentials,
+} from "@/lib/venus-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const rateLimit = assertRateLimit(request, "venus-login", { limit: 8, windowMs: 15 * 60 * 1000 });
+    const rateLimit = await assertRateLimit(request, "venus-login", { limit: 8, windowMs: 15 * 60 * 1000 });
     if (!rateLimit.ok) {
       return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429 });
     }
@@ -37,12 +44,18 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ ok: true });
     response.cookies.set({
       name: VENUS_COOKIE_NAME,
-      value: await issueVenusSessionToken(username),
+      value: await issueVenusSessionToken(
+        username,
+        getAuthSessionMetadata({
+          ipAddress: getClientIp(request),
+          userAgent: request.headers.get("user-agent"),
+        }),
+      ),
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: VENUS_SESSION_MAX_AGE_SECONDS,
       domain: getAdminCookieDomain()
     });
 

@@ -25,6 +25,8 @@ try {
 }
 
 const resolved = new Map(existing);
+resolved.delete("ADMIN_SESSION_SECRET");
+resolved.delete("VENUS_GATE_SESSION_SECRET");
 
 const username = resolveUsername({
   existing,
@@ -36,8 +38,8 @@ resolved.set("ADMIN_USERNAME", username);
 const encryptionKey = pickSecretValue("LEAD_ENCRYPTION_KEY", { existing, force: parsedArgs.force });
 resolved.set("LEAD_ENCRYPTION_KEY", encryptionKey);
 
-const sessionSecret = pickSecretValue("ADMIN_SESSION_SECRET", { existing, force: parsedArgs.force });
-resolved.set("ADMIN_SESSION_SECRET", sessionSecret);
+const tileosProxySecret = pickSecretValue("TILEOS_PROXY_SHARED_SECRET", { existing, force: parsedArgs.force });
+resolved.set("TILEOS_PROXY_SHARED_SECRET", tileosProxySecret);
 
 const passwordSalt = pickSecretValue("ADMIN_PASSWORD_SALT", { existing, force: parsedArgs.force });
 resolved.set("ADMIN_PASSWORD_SALT", passwordSalt);

@@ -26,6 +26,8 @@ type UploadPayload = {
   error?: string;
   fileName?: string;
   bytesWritten?: number;
+  objectKey?: string;
+  pendingExpiresAt?: string;
   publicUrl?: string | null;
 };
 
@@ -203,12 +205,23 @@ export function VideoUploadPanel({ initialVideos, storageLabel, storageMode }: V
         xhr.send(file);
       });
 
-      return {
-        ok: true,
-        fileName: targetPayload.fileName || file.name,
-        bytesWritten: file.size,
-        publicUrl: targetPayload.publicUrl ?? null,
-      };
+      const finalizeResponse = await fetch("/api/manage/videos/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: targetPayload.fileName || file.name,
+          objectKey: targetPayload.objectKey,
+        }),
+      });
+
+      const finalizePayload = (await finalizeResponse.json().catch(() => ({}))) as UploadPayload;
+      if (!finalizeResponse.ok || !finalizePayload.ok) {
+        throw new Error(finalizePayload.error || "Unable to finalize the uploaded video.");
+      }
+
+      return finalizePayload;
     };
 
     const uploadVideoFile: (file: File, onProgress: (progress: number | null) => void) => Promise<UploadPayload> =
@@ -233,7 +246,7 @@ export function VideoUploadPanel({ initialVideos, storageLabel, storageMode }: V
           setResults([...nextResults]);
         };
 
-        try {
+          try {
           const payload = await uploadVideoFile(file, (progress) => {
             updateCurrentResult({
               message: progress === null ? uploadProgressLabel : `${progress}% uploaded · ${formatBytes(file.size)}`,

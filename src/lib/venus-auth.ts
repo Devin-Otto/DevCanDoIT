@@ -1,18 +1,57 @@
-export const VENUS_COOKIE_NAME = "devcandoit_venus_session";
-const DEFAULT_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
-const DEFAULT_SYNC_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 90;
+import { scryptSync, timingSafeEqual } from "crypto";
 
-function getSessionSecret() {
-  const secret = process.env.VENUS_GATE_SESSION_SECRET?.trim() || process.env.ADMIN_SESSION_SECRET?.trim();
-  if (!secret) {
-    throw new Error("VENUS_GATE_SESSION_SECRET or ADMIN_SESSION_SECRET must be set.");
+import { createAuthSession, revokeAuthSessionToken, verifyAuthSessionToken } from "@/lib/auth-state";
+
+export const VENUS_COOKIE_NAME = "devcandoit_venus_session";
+export const VENUS_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+export const VENUS_SYNC_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
+let warnedLegacyPassword = false;
+
+function normalizeUsername(value: string | undefined) {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function getVenusPasswordSalt() {
+  return process.env.VENUS_GATE_PASSWORD_SALT?.trim() || null;
+}
+
+function getVenusPasswordHash() {
+  return process.env.VENUS_GATE_PASSWORD_HASH?.trim() || null;
+}
+
+function getLegacyVenusPassword() {
+  return process.env.VENUS_GATE_PASSWORD || null;
+}
+
+function hasHashedVenusCredentials() {
+  return Boolean(getVenusPasswordSalt() && getVenusPasswordHash());
+}
+
+function hasLegacyVenusCredentials() {
+  return Boolean(getLegacyVenusPassword());
+}
+
+function warnLegacyPasswordOnce() {
+  if (warnedLegacyPassword) {
+    return;
   }
 
-  return secret;
+  warnedLegacyPassword = true;
+  console.warn("VENUS_GATE_PASSWORD is deprecated. Configure VENUS_GATE_PASSWORD_SALT and VENUS_GATE_PASSWORD_HASH.");
+}
+
+function hashVenusPassword(password: string) {
+  const salt = getVenusPasswordSalt();
+  if (!salt) {
+    throw new Error("VENUS_GATE_PASSWORD_SALT must be set.");
+  }
+
+  return scryptSync(password, salt, 64);
 }
 
 export function isVenusGateConfigured() {
-  return Boolean(process.env.VENUS_GATE_USERNAME?.trim() && process.env.VENUS_GATE_PASSWORD?.trim());
+  return Boolean(process.env.VENUS_GATE_USERNAME?.trim() && (hasHashedVenusCredentials() || hasLegacyVenusCredentials()));
 }
 
 export function getVenusUsername() {
@@ -24,158 +63,60 @@ export function getVenusUsername() {
   return username;
 }
 
-function getVenusPassword() {
-  const password = process.env.VENUS_GATE_PASSWORD;
-  if (!password) {
-    throw new Error("VENUS_GATE_PASSWORD must be set.");
-  }
-
-  return password;
-}
-
-function normalizeUsername(value: string | undefined) {
-  return (value ?? "").trim().toLowerCase();
-}
-
-function bytesToBase64Url(bytes: Uint8Array) {
-  let binary = "";
-  bytes.forEach((byte) => {
-    binary += String.fromCharCode(byte);
+export async function issueVenusSessionToken(
+  username: string,
+  metadata?: Record<string, unknown>,
+): Promise<string> {
+  const session = await createAuthSession({
+    metadata,
+    scope: "venus-web",
+    subject: normalizeUsername(username),
+    ttlMs: VENUS_SESSION_MAX_AGE_SECONDS * 1000,
   });
 
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return session.token;
 }
 
-function base64UrlToBytes(value: string) {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padding = 4 - (base64.length % 4 || 4);
-  const normalized = `${base64}${"=".repeat(padding === 4 ? 0 : padding)}`;
-  const binary = atob(normalized);
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
-}
+export async function issueVenusDesktopSyncToken(
+  username: string,
+  metadata?: Record<string, unknown>,
+): Promise<string> {
+  const session = await createAuthSession({
+    metadata,
+    scope: "venus-sync",
+    subject: normalizeUsername(username),
+    ttlMs: VENUS_SYNC_MAX_AGE_SECONDS * 1000,
+  });
 
-async function getSessionKey() {
-  return crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(getSessionSecret()),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"]
-  );
-}
-
-async function sign(value: string) {
-  const key = await getSessionKey();
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
-  return bytesToBase64Url(new Uint8Array(signature));
-}
-
-export async function issueVenusSessionToken(username: string): Promise<string> {
-  const payload = {
-    expiresAt: Date.now() + DEFAULT_SESSION_TTL_MS,
-    issuedAt: Date.now(),
-    nonce: bytesToBase64Url(crypto.getRandomValues(new Uint8Array(8))),
-    username
-  };
-
-  const encoded = bytesToBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
-  const signature = await sign(encoded);
-  return `${encoded}.${signature}`;
-}
-
-export async function issueVenusDesktopSyncToken(username: string): Promise<string> {
-  const payload = {
-    expiresAt: Date.now() + DEFAULT_SYNC_TOKEN_TTL_MS,
-    issuedAt: Date.now(),
-    kind: "venus-sync",
-    nonce: bytesToBase64Url(crypto.getRandomValues(new Uint8Array(12))),
-    username
-  };
-
-  const encoded = bytesToBase64Url(new TextEncoder().encode(JSON.stringify(payload)));
-  const signature = await sign(encoded);
-  return `${encoded}.${signature}`;
+  return session.token;
 }
 
 export async function verifyVenusSessionToken(token: string | undefined | null): Promise<boolean> {
-  if (!token || !isVenusGateConfigured()) {
+  if (!isVenusGateConfigured()) {
     return false;
   }
 
-  const [encoded, signature] = token.split(".");
-  if (!encoded || !signature) {
-    return false;
-  }
-
-  const key = await getSessionKey();
-  const signatureBytes = base64UrlToBytes(signature);
-  const verified = await crypto.subtle.verify("HMAC", key, signatureBytes, new TextEncoder().encode(encoded));
-
-  if (!verified) {
-    return false;
-  }
-
-  try {
-    const payload = JSON.parse(new TextDecoder().decode(base64UrlToBytes(encoded))) as {
-      expiresAt?: number;
-      username?: string;
-    };
-
-    if (normalizeUsername(payload.username) !== normalizeUsername(getVenusUsername())) {
-      return false;
-    }
-
-    if (typeof payload.expiresAt !== "number" || payload.expiresAt < Date.now()) {
-      return false;
-    }
-
-    return true;
-  } catch {
-    return false;
-  }
+  const session = await verifyAuthSessionToken(token, {
+    scope: "venus-web",
+    subject: normalizeUsername(getVenusUsername()),
+  });
+  return Boolean(session);
 }
 
 export async function verifyVenusDesktopSyncToken(token: string | undefined | null): Promise<boolean> {
-  if (!token || !isVenusGateConfigured()) {
+  if (!isVenusGateConfigured()) {
     return false;
   }
 
-  const [encoded, signature] = token.split(".");
-  if (!encoded || !signature) {
-    return false;
-  }
+  const session = await verifyAuthSessionToken(token, {
+    scope: "venus-sync",
+    subject: normalizeUsername(getVenusUsername()),
+  });
+  return Boolean(session);
+}
 
-  const key = await getSessionKey();
-  const signatureBytes = base64UrlToBytes(signature);
-  const verified = await crypto.subtle.verify("HMAC", key, signatureBytes, new TextEncoder().encode(encoded));
-
-  if (!verified) {
-    return false;
-  }
-
-  try {
-    const payload = JSON.parse(new TextDecoder().decode(base64UrlToBytes(encoded))) as {
-      expiresAt?: number;
-      kind?: string;
-      username?: string;
-    };
-
-    if (payload.kind !== "venus-sync") {
-      return false;
-    }
-
-    if (normalizeUsername(payload.username) !== normalizeUsername(getVenusUsername())) {
-      return false;
-    }
-
-    if (typeof payload.expiresAt !== "number" || payload.expiresAt < Date.now()) {
-      return false;
-    }
-
-    return true;
-  } catch {
-    return false;
-  }
+export async function revokeVenusSessionToken(token: string | undefined | null) {
+  await revokeAuthSessionToken(token);
 }
 
 export function verifyVenusCredentials(username: string, password: string) {
@@ -183,5 +124,20 @@ export function verifyVenusCredentials(username: string, password: string) {
     return false;
   }
 
-  return normalizeUsername(username) === normalizeUsername(getVenusUsername()) && password === getVenusPassword();
+  if (normalizeUsername(username) !== normalizeUsername(getVenusUsername())) {
+    return false;
+  }
+
+  if (hasHashedVenusCredentials()) {
+    const expectedHash = Buffer.from(getVenusPasswordHash() as string, "hex");
+    const candidateHash = hashVenusPassword(password);
+    return candidateHash.length === expectedHash.length && timingSafeEqual(candidateHash, expectedHash);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
+
+  warnLegacyPasswordOnce();
+  return password === getLegacyVenusPassword();
 }

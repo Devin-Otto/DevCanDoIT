@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const rateLimit = assertRateLimit(request, "telemidi-session-create", {
+    const rateLimit = await assertRateLimit(request, "telemidi-session-create", {
       limit: 12,
       windowMs: 15 * 60 * 1000,
     });

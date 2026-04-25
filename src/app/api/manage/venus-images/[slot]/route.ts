@@ -4,6 +4,8 @@ import { mkdir, rename, rm } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
+import { serverErrorJson } from "@/lib/api-errors";
+import { validateUploadedFilePath } from "@/lib/file-validation";
 import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
 import {
   PayloadTooLargeError,
@@ -49,23 +51,6 @@ function getFileNameFromHeader(request: NextRequest, slot: Awaited<ReturnType<ty
   }
 }
 
-function getContentType(fileName: string) {
-  const extension = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
-  switch (extension) {
-    case ".jpg":
-    case ".jpeg":
-      return "image/jpeg";
-    case ".png":
-      return "image/png";
-    case ".webp":
-      return "image/webp";
-    case ".avif":
-      return "image/avif";
-    default:
-      return "application/octet-stream";
-  }
-}
-
 export async function GET(request: NextRequest, context: RouteContext<"/api/manage/venus-images/[slot]">) {
   if (!(await isAuthed(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -106,7 +91,7 @@ export async function POST(request: NextRequest, context: RouteContext<"/api/man
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const rateLimit = assertRateLimit(request, "manage-venus-images", { limit: 40, windowMs: 60 * 60 * 1000 });
+    const rateLimit = await assertRateLimit(request, "manage-venus-images", { limit: 40, windowMs: 60 * 60 * 1000 });
     if (!rateLimit.ok) {
       return NextResponse.json({ error: "Too many uploads. Try again later." }, { status: 429 });
     }
@@ -120,23 +105,30 @@ export async function POST(request: NextRequest, context: RouteContext<"/api/man
 
     try {
       await streamRequestBodyToFile(request, tempPath, VENUS_IMAGE_MAX_BYTES);
+      const validation = await validateUploadedFilePath({
+        contentType: request.headers.get("content-type"),
+        fileName,
+        filePath: tempPath,
+        kind: "image",
+      }).catch((error) => {
+        throw new RequestInputError(error instanceof Error ? error.message : "Unsupported image upload.");
+      });
       removeExistingVenusImageVariants(slot);
       await rename(tempPath, targetPath);
+      const stats = statSync(targetPath);
+
+      return NextResponse.json({
+        bytesWritten: stats.size,
+        contentType: validation.contentType,
+        fileName,
+        ok: true,
+        slot,
+        targetPath
+      });
     } catch (error) {
       await rm(tempPath, { force: true });
       throw error;
     }
-
-    const stats = statSync(targetPath);
-
-    return NextResponse.json({
-      bytesWritten: stats.size,
-      contentType: getContentType(fileName),
-      fileName,
-      ok: true,
-      slot,
-      targetPath
-    });
   } catch (error) {
     if (error instanceof PayloadTooLargeError) {
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
@@ -146,7 +138,10 @@ export async function POST(request: NextRequest, context: RouteContext<"/api/man
       return NextResponse.json({ error: error.message }, { status: error.statusCode });
     }
 
-    console.error("[manage/venus-images] Upload failed", error);
-    return NextResponse.json({ error: "Unable to upload file right now." }, { status: 500 });
+    return serverErrorJson({
+      error,
+      fallbackMessage: "Unable to upload file right now.",
+      route: "manage/venus-images",
+    });
   }
 }

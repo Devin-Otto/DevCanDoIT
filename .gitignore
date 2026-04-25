@@ -61,3 +61,7 @@ data/
 videos/
 docs/AGENT_ONBOARDING.md
 profilephoto.jpeg
+
+# Local one-off audit scratch files
+.tmp_project_audits*/
+scripts/audit_projects.py

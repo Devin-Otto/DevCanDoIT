@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
+import { serverErrorJson } from "@/lib/api-errors";
 import { getLeadScanJob } from "@/lib/lead-finder";
 import { loadLeadStoreSnapshot } from "@/lib/lead-db";
 
@@ -24,9 +25,10 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/lead
     const store = await loadLeadStoreSnapshot(jobId);
     return NextResponse.json({ job, store }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unable to load scan job." },
-      { status: 500 },
-    );
+    return serverErrorJson({
+      error,
+      fallbackMessage: "Unable to load scan job.",
+      route: "leads/jobs/[jobId]",
+    });
   }
 }

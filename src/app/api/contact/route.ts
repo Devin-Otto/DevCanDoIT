@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Unable to process your request." }, { status: 403 });
     }
 
-    const rateLimit = assertRateLimit(request, "contact-form", {
+    const rateLimit = await assertRateLimit(request, "contact-form", {
       limit: 5,
       windowMs: 60 * 60 * 1000,
     });

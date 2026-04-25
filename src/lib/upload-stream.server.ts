@@ -6,6 +6,7 @@ const BYTES_PER_MIB = 1024 * 1024;
 
 export const PROFILE_PHOTO_MAX_BYTES = 10 * BYTES_PER_MIB;
 export const VENUS_IMAGE_MAX_BYTES = 25 * BYTES_PER_MIB;
+export const VIDEO_UPLOAD_MAX_BYTES = 150 * BYTES_PER_MIB;
 
 export class RequestInputError extends Error {
   readonly statusCode: number;

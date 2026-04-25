@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
+import { serverErrorJson } from "@/lib/api-errors";
 import { getLeadById, listLeadActivities, updateLeadRecord } from "@/lib/lead-db";
 import { assertAllowedOrigin, assertRateLimit } from "@/lib/request-security";
 
@@ -28,12 +29,11 @@ export async function GET(request: NextRequest, context: RouteContext<"/api/lead
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unable to load lead details.",
-      },
-      { status: 500 },
-    );
+    return serverErrorJson({
+      error,
+      fallbackMessage: "Unable to load lead details.",
+      route: "leads/[id]:GET",
+    });
   }
 }
 
@@ -48,7 +48,7 @@ export async function PATCH(request: NextRequest, context: RouteContext<"/api/le
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const rateLimit = assertRateLimit(request, "lead-update", { limit: 30, windowMs: 10 * 60 * 1000 });
+    const rateLimit = await assertRateLimit(request, "lead-update", { limit: 30, windowMs: 10 * 60 * 1000 });
     if (!rateLimit.ok) {
       return NextResponse.json({ error: "Too many updates. Slow down a bit." }, { status: 429 });
     }
@@ -85,11 +85,10 @@ export async function PATCH(request: NextRequest, context: RouteContext<"/api/le
 
     return NextResponse.json({ store: nextStore }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Unable to update lead.",
-      },
-      { status: 500 },
-    );
+    return serverErrorJson({
+      error,
+      fallbackMessage: "Unable to update lead.",
+      route: "leads/[id]:PATCH",
+    });
   }
 }

@@ -1,42 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { ADMIN_COOKIE_NAME, verifyAdminSessionToken } from "@/lib/admin-auth";
+import { serverErrorJson } from "@/lib/api-errors";
 import { assertAllowedOrigin } from "@/lib/request-security";
 import { loadVenusSyncDocument, saveVenusSyncDocument } from "@/lib/venus-sync.server";
-import {
-  isVenusGateConfigured,
-  VENUS_COOKIE_NAME,
-  verifyVenusDesktopSyncToken,
-  verifyVenusSessionToken
-} from "@/lib/venus-auth";
+import { isVenusAuthorizedRequest } from "@/lib/venus-access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getBearerToken(request: NextRequest) {
-  const authorization = request.headers.get("authorization") ?? "";
-  const match = authorization.match(/^Bearer\s+(.+)$/iu);
-  return match?.[1]?.trim() ?? "";
-}
-
-async function isAuthorized(request: NextRequest) {
-  if (!isVenusGateConfigured()) {
-    return false;
-  }
-
-  if (await verifyAdminSessionToken(request.cookies.get(ADMIN_COOKIE_NAME)?.value)) {
-    return true;
-  }
-
-  if (await verifyVenusSessionToken(request.cookies.get(VENUS_COOKIE_NAME)?.value)) {
-    return true;
-  }
-
-  return verifyVenusDesktopSyncToken(getBearerToken(request));
-}
-
 export async function GET(request: NextRequest) {
-  if (!(await isAuthorized(request))) {
+  if (!(await isVenusAuthorizedRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -49,7 +22,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (!(await isAuthorized(request))) {
+    if (!(await isVenusAuthorizedRequest(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -69,7 +42,10 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(await saveVenusSyncDocument(body, current.revision + 1));
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to save sync state.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return serverErrorJson({
+      error,
+      fallbackMessage: "Unable to save sync state.",
+      route: "venus-sync/state",
+    });
   }
 }
