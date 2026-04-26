@@ -27,6 +27,7 @@ const DEFAULT_DB_URL = `file:${LOCAL_DB_PATH}`;
 
 let clientPromise: Promise<Client> | null = null;
 let initPromise: Promise<void> | null = null;
+let warnedVerificationFailure = false;
 
 function authDbUrl() {
   const configured = process.env.AUTH_STATE_DATABASE_URL?.trim();
@@ -130,6 +131,15 @@ function parseRateLimitRow(row: Record<string, unknown> | undefined): RateLimitR
   };
 }
 
+function logVerificationFailure(error: unknown) {
+  if (warnedVerificationFailure) {
+    return;
+  }
+
+  warnedVerificationFailure = true;
+  console.error("[auth-state] session verification unavailable; denying access.", error);
+}
+
 async function initializeAuthStateDatabase() {
   await mkdir(DATA_DIR, { recursive: true });
   const client = await getClient();
@@ -229,53 +239,58 @@ export async function verifyAuthSessionToken(
     return null;
   }
 
-  await ensureAuthStateDatabase();
+  try {
+    await ensureAuthStateDatabase();
 
-  const client = await getClient();
-  const tokenHash = hashOpaqueToken(token);
-  const result = await client.execute({
-    args: [tokenHash],
-    sql: `SELECT
-      token_hash,
-      scope,
-      subject,
-      created_at,
-      expires_at,
-      revoked_at,
-      last_seen_at,
-      metadata_json
-    FROM auth_sessions
-    WHERE token_hash = ?
-    LIMIT 1`,
-  });
-
-  const row = parseSessionRow(result.rows[0] as Record<string, unknown> | undefined);
-  const revokedAt = toNullableString((result.rows[0] as Record<string, unknown> | undefined)?.revoked_at);
-
-  if (!row || revokedAt || row.scope !== options.scope) {
-    return null;
-  }
-
-  if (options.subject && row.subject !== options.subject) {
-    return null;
-  }
-
-  if (Date.parse(row.expiresAt) <= Date.now()) {
-    return null;
-  }
-
-  if (options.touch !== false) {
-    const lastSeenAt = new Date().toISOString();
-    await client.execute({
-      args: [lastSeenAt, row.tokenHash],
-      sql: `UPDATE auth_sessions
-        SET last_seen_at = ?
-        WHERE token_hash = ?`,
+    const client = await getClient();
+    const tokenHash = hashOpaqueToken(token);
+    const result = await client.execute({
+      args: [tokenHash],
+      sql: `SELECT
+        token_hash,
+        scope,
+        subject,
+        created_at,
+        expires_at,
+        revoked_at,
+        last_seen_at,
+        metadata_json
+      FROM auth_sessions
+      WHERE token_hash = ?
+      LIMIT 1`,
     });
-    row.lastSeenAt = lastSeenAt;
-  }
 
-  return row;
+    const row = parseSessionRow(result.rows[0] as Record<string, unknown> | undefined);
+    const revokedAt = toNullableString((result.rows[0] as Record<string, unknown> | undefined)?.revoked_at);
+
+    if (!row || revokedAt || row.scope !== options.scope) {
+      return null;
+    }
+
+    if (options.subject && row.subject !== options.subject) {
+      return null;
+    }
+
+    if (Date.parse(row.expiresAt) <= Date.now()) {
+      return null;
+    }
+
+    if (options.touch !== false) {
+      const lastSeenAt = new Date().toISOString();
+      await client.execute({
+        args: [lastSeenAt, row.tokenHash],
+        sql: `UPDATE auth_sessions
+          SET last_seen_at = ?
+          WHERE token_hash = ?`,
+      });
+      row.lastSeenAt = lastSeenAt;
+    }
+
+    return row;
+  } catch (error) {
+    logVerificationFailure(error);
+    return null;
+  }
 }
 
 export async function revokeAuthSessionToken(token: string | null | undefined) {
@@ -357,4 +372,5 @@ export function getAuthSessionMetadata(args: {
 export function __resetAuthStateForTests() {
   clientPromise = null;
   initPromise = null;
+  warnedVerificationFailure = false;
 }

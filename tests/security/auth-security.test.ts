@@ -111,6 +111,35 @@ test("expired sessions fail verification", async () => {
   assert.equal(verified, null);
 });
 
+test("session verification fails closed when auth state storage is unavailable", async () => {
+  await configureSecurityEnv();
+  const authState = await import("../../src/lib/auth-state.ts");
+  authState.__resetAuthStateForTests();
+
+  const originalNodeEnv = process.env.NODE_ENV;
+  const originalAuthDbUrl = process.env.AUTH_STATE_DATABASE_URL;
+
+  process.env.NODE_ENV = "production";
+  delete process.env.AUTH_STATE_DATABASE_URL;
+
+  try {
+    const verified = await authState.verifyAuthSessionToken("opaque-token", {
+      scope: "admin",
+      subject: "admin",
+    });
+
+    assert.equal(verified, null);
+  } finally {
+    process.env.NODE_ENV = originalNodeEnv;
+    if (typeof originalAuthDbUrl === "string") {
+      process.env.AUTH_STATE_DATABASE_URL = originalAuthDbUrl;
+    } else {
+      delete process.env.AUTH_STATE_DATABASE_URL;
+    }
+    authState.__resetAuthStateForTests();
+  }
+});
+
 test("persistent rate limits survive module resets", async () => {
   const { authState, requestSecurity } = await getModules();
   const request = buildRequest({
