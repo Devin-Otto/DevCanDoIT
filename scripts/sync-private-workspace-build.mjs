@@ -23,20 +23,25 @@ if (!fs.existsSync(path.join(venusRoot, "package.json"))) {
   throw new Error(`Could not find the private Venus repo at ${venusRoot}. Set VENUS_REPO_PATH if needed.`);
 }
 
-console.log(`Building Venus from ${venusRoot} for /Venus hosting...`);
+console.log(`Building hosted workspace app from ${venusRoot} for /Venus hosting...`);
 execSync("npm run build:web:website", {
   cwd: venusRoot,
   stdio: "inherit",
   env: {
     ...process.env,
-    VITE_VENUS_BACKGROUND_IMAGE_URL: "/api/venus-images/background",
-    VITE_VENUS_CENTER_IMAGE_URL: "/api/venus-images/center",
-    VITE_VENUS_PROFILE_IMAGE_URL: "/api/venus-images/profile"
+    VITE_HOSTED_APP_MODE: "remote-only",
+    VITE_HOSTED_BACKGROUND_IMAGE_URL: "/api/private-workspace/images/background",
+    VITE_HOSTED_CENTER_IMAGE_URL: "/api/private-workspace/images/center",
+    VITE_HOSTED_EXTERNAL_PREVIEW_PATH: "/api/private-workspace/preview/external",
+    VITE_HOSTED_LOCAL_MEDIA_PATH: "/api/private-workspace/media/local",
+    VITE_HOSTED_PROFILE_IMAGE_URL: "/api/private-workspace/images/profile",
+    VITE_HOSTED_SYNC_AUTH_PATH: "/api/private-workspace/sync/auth",
+    VITE_HOSTED_SYNC_STATE_PATH: "/api/private-workspace/sync/state"
   }
 });
 
 if (!fs.existsSync(path.join(venusDist, "index.html"))) {
-  throw new Error(`Expected built Venus files in ${venusDist}.`);
+  throw new Error(`Expected built workspace files in ${venusDist}.`);
 }
 
 fs.rmSync(targetDir, { recursive: true, force: true });
@@ -53,5 +58,5 @@ fs.cpSync(venusDist, targetDir, {
   }
 });
 
-console.log(`Synced Venus build into ${targetDir}.`);
+console.log(`Synced hosted workspace build into ${targetDir}.`);
 console.log("Commit the updated public/Venus files in DevCanDoIT so Railway can deploy them.");
