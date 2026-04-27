@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
+export type OverlayPanel = "all" | "coins" | "daily-hearts" | "followers" | "goal" | "likes";
 
 type OverlayAccentColor = "cyan" | "pink" | "purple";
 
@@ -32,10 +34,32 @@ const DEFAULT_OVERLAY: LiveOverlayState = {
   likes: { current: 0, target: 5000 }
 };
 
-const ACCENT_COLORS: Record<OverlayAccentColor, { glow: string; primary: string; secondary: string }> = {
-  cyan: { glow: "rgba(109, 236, 255, 0.35)", primary: "#6decff", secondary: "#9fd4ff" },
-  pink: { glow: "rgba(255, 102, 196, 0.34)", primary: "#ff66c4", secondary: "#ffb0dd" },
-  purple: { glow: "rgba(176, 130, 255, 0.35)", primary: "#b082ff", secondary: "#dcc7ff" }
+const ACCENT_COLORS: Record<OverlayAccentColor, { glow: string; primary: string; secondary: string; track: string }> = {
+  cyan: {
+    glow: "rgba(109, 236, 255, 0.35)",
+    primary: "#6decff",
+    secondary: "#9fd4ff",
+    track: "rgba(255,255,255,0.22)"
+  },
+  pink: {
+    glow: "rgba(255, 102, 196, 0.34)",
+    primary: "#ff66c4",
+    secondary: "#ffb0dd",
+    track: "rgba(255,255,255,0.22)"
+  },
+  purple: {
+    glow: "rgba(176, 130, 255, 0.35)",
+    primary: "#b082ff",
+    secondary: "#dcc7ff",
+    track: "rgba(255,255,255,0.22)"
+  }
+};
+
+const METRIC_PANEL_CONFIG: Record<Exclude<OverlayPanel, "all" | "goal">, { label: string; metricKey: keyof Pick<LiveOverlayState, "coins" | "dailyHearts" | "followers" | "likes"> }> = {
+  coins: { label: "Coins", metricKey: "coins" },
+  "daily-hearts": { label: "Daily Hearts", metricKey: "dailyHearts" },
+  followers: { label: "Followers", metricKey: "followers" },
+  likes: { label: "Likes", metricKey: "likes" }
 };
 
 function clampPercent(current: number, target: number) {
@@ -50,7 +74,19 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
-function Ring({ current, size, strokeWidth, target, trackColor, valueColor }: OverlayMetric & { size: number; strokeWidth: number; trackColor: string; valueColor: string; }) {
+function Ring({
+  current,
+  size,
+  strokeWidth,
+  target,
+  trackColor,
+  valueColor
+}: OverlayMetric & {
+  size: number;
+  strokeWidth: number;
+  trackColor: string;
+  valueColor: string;
+}) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const percent = clampPercent(current, target);
@@ -76,49 +112,13 @@ function Ring({ current, size, strokeWidth, target, trackColor, valueColor }: Ov
         strokeDashoffset={dashOffset}
         strokeLinecap="round"
         strokeWidth={strokeWidth}
-        style={{ transform: `rotate(-90deg)`, transformOrigin: "50% 50%" }}
+        style={{ filter: `drop-shadow(0 0 14px ${valueColor})`, transform: "rotate(-90deg)", transformOrigin: "50% 50%" }}
       />
     </svg>
   );
 }
 
-function MetricCard({ accent, label, metric }: { accent: OverlayAccentColor; label: string; metric: OverlayMetric }) {
-  const colors = ACCENT_COLORS[accent];
-  const percent = clampPercent(metric.current, metric.target);
-
-  return (
-    <div
-      style={{
-        alignItems: "center",
-        display: "grid",
-        gap: "0.55rem",
-        justifyItems: "center",
-        minWidth: 150
-      }}
-    >
-      <div style={{ position: "relative", width: 118, height: 118 }}>
-        <Ring current={metric.current} size={118} strokeWidth={12} target={metric.target} trackColor="rgba(255,255,255,0.18)" valueColor={colors.primary} />
-        <div
-          style={{
-            alignItems: "center",
-            display: "grid",
-            inset: 0,
-            justifyItems: "center",
-            position: "absolute"
-          }}
-        >
-          <strong style={{ fontSize: "1.8rem", lineHeight: 1 }}>{percent}%</strong>
-        </div>
-      </div>
-      <div style={{ display: "grid", gap: "0.15rem", justifyItems: "center", textAlign: "center" }}>
-        <strong style={{ fontSize: "1.05rem", letterSpacing: "0.04em", textTransform: "uppercase" }}>{label}</strong>
-        <span style={{ fontSize: "1.5rem", fontWeight: 700 }}>{formatNumber(metric.current)}/{formatNumber(metric.target)}</span>
-      </div>
-    </div>
-  );
-}
-
-export function VenusLiveOverlayClient() {
+function useLiveOverlayState() {
   const [overlay, setOverlay] = useState<LiveOverlayState>(DEFAULT_OVERLAY);
 
   useEffect(() => {
@@ -151,9 +151,20 @@ export function VenusLiveOverlayClient() {
     };
   }, []);
 
-  const accent = useMemo(() => ACCENT_COLORS[overlay.accentColor], [overlay.accentColor]);
-  const goalPercent = clampPercent(overlay.goalCurrent, overlay.goalTarget);
+  return overlay;
+}
 
+function OverlayStage({
+  children,
+  justify = "center",
+  padding = "1.5rem",
+  width = "100vw"
+}: {
+  children: React.ReactNode;
+  justify?: "center" | "start";
+  padding?: string;
+  width?: string;
+}) {
   return (
     <main
       style={{
@@ -162,85 +173,201 @@ export function VenusLiveOverlayClient() {
         color: "#ffffff",
         display: "grid",
         fontFamily: '"Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif',
-        gap: "2.5rem",
-        justifyItems: "center",
+        justifyItems: justify,
+        margin: 0,
         minHeight: "100vh",
-        padding: "2rem",
-        textShadow: "0 2px 20px rgba(0,0,0,0.45)",
-        userSelect: "none"
+        padding,
+        textShadow: "0 2px 18px rgba(0,0,0,0.45)",
+        userSelect: "none",
+        width
       }}
     >
+      {children}
+    </main>
+  );
+}
+
+function GoalOverlayContent({ overlay }: { overlay: LiveOverlayState }) {
+  const accent = ACCENT_COLORS[overlay.accentColor];
+  const goalPercent = clampPercent(overlay.goalCurrent, overlay.goalTarget);
+
+  return (
+    <section
+      style={{
+        alignItems: "center",
+        display: "grid",
+        justifyItems: "center",
+        minWidth: 420
+      }}
+    >
+      <div style={{ position: "relative", width: 420, height: 286 }}>
+        <svg width="420" height="286" viewBox="0 0 420 286" aria-hidden="true">
+          <path
+            d="M 48 198 A 162 162 0 0 1 372 198"
+            fill="none"
+            stroke={accent.track}
+            strokeLinecap="round"
+            strokeWidth="26"
+          />
+          <path
+            d="M 48 198 A 162 162 0 0 1 372 198"
+            fill="none"
+            pathLength="100"
+            stroke={accent.primary}
+            strokeDasharray={`${goalPercent} 100`}
+            strokeLinecap="round"
+            strokeWidth="26"
+            style={{ filter: `drop-shadow(0 0 18px ${accent.glow})` }}
+          />
+        </svg>
+        <div
+          style={{
+            alignItems: "center",
+            display: "grid",
+            gap: "0.5rem",
+            inset: 0,
+            justifyItems: "center",
+            paddingBottom: "1.4rem",
+            paddingTop: "0.9rem",
+            position: "absolute"
+          }}
+        >
+          <strong style={{ fontSize: "5rem", lineHeight: 0.95 }}>{goalPercent}%</strong>
+          <span style={{ fontSize: "3.25rem", fontWeight: 800, lineHeight: 1 }}>
+            {formatNumber(overlay.goalCurrent)}/{formatNumber(overlay.goalTarget)}
+          </span>
+          <span
+            style={{
+              color: accent.secondary,
+              fontSize: "1.55rem",
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              lineHeight: 1.1,
+              marginTop: "0.7rem",
+              textAlign: "center",
+              textTransform: "uppercase"
+            }}
+          >
+            {overlay.goalLabel}
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SingleMetricOverlayContent({
+  accent,
+  label,
+  metric
+}: {
+  accent: OverlayAccentColor;
+  label: string;
+  metric: OverlayMetric;
+}) {
+  const colors = ACCENT_COLORS[accent];
+  const percent = clampPercent(metric.current, metric.target);
+
+  return (
+    <section
+      style={{
+        alignItems: "center",
+        display: "grid",
+        gap: "0.65rem",
+        justifyItems: "center",
+        minWidth: 220
+      }}
+    >
+      <div style={{ position: "relative", width: 168, height: 168 }}>
+        <Ring
+          current={metric.current}
+          size={168}
+          strokeWidth={14}
+          target={metric.target}
+          trackColor={colors.track}
+          valueColor={colors.primary}
+        />
+        <div
+          style={{
+            alignItems: "center",
+            display: "grid",
+            gap: "0.15rem",
+            inset: 0,
+            justifyItems: "center",
+            position: "absolute"
+          }}
+        >
+          <strong style={{ fontSize: "2.55rem", lineHeight: 1 }}>{percent}%</strong>
+          <span style={{ fontSize: "1.1rem", fontWeight: 700, lineHeight: 1.1 }}>
+            {formatNumber(metric.current)}/{formatNumber(metric.target)}
+          </span>
+        </div>
+      </div>
+      <strong
+        style={{
+          color: colors.secondary,
+          fontSize: "1.1rem",
+          fontWeight: 800,
+          letterSpacing: "0.12em",
+          lineHeight: 1.15,
+          textAlign: "center",
+          textTransform: "uppercase"
+        }}
+      >
+        {label}
+      </strong>
+    </section>
+  );
+}
+
+function AllOverlay({ overlay }: { overlay: LiveOverlayState }) {
+  return (
+    <OverlayStage padding="1.5rem 2rem">
       <section
         style={{
           alignItems: "center",
           display: "grid",
-          gap: "0.85rem",
+          gap: "2.2rem",
           justifyItems: "center"
         }}
       >
-        <div style={{ position: "relative", width: 320, height: 190 }}>
-          <svg width="320" height="190" viewBox="0 0 320 190" aria-hidden="true">
-            <path
-              d="M 34 158 A 126 126 0 0 1 286 158"
-              fill="none"
-              stroke="rgba(255,255,255,0.28)"
-              strokeLinecap="round"
-              strokeWidth="22"
-            />
-            <path
-              d="M 34 158 A 126 126 0 0 1 286 158"
-              fill="none"
-              pathLength="100"
-              stroke={accent.primary}
-              strokeDasharray={`${goalPercent} 100`}
-              strokeLinecap="round"
-              strokeWidth="22"
-              style={{ filter: `drop-shadow(0 0 18px ${accent.glow})` }}
-            />
-          </svg>
-          <div
-            style={{
-              alignItems: "center",
-              display: "grid",
-              gap: "0.45rem",
-              inset: 0,
-              justifyItems: "center",
-              paddingTop: "1.5rem",
-              position: "absolute"
-            }}
-          >
-            <strong style={{ fontSize: "3.4rem", lineHeight: 1 }}>{goalPercent}%</strong>
-            <span style={{ fontSize: "2.6rem", fontWeight: 700, lineHeight: 1.05 }}>
-              {formatNumber(overlay.goalCurrent)}/{formatNumber(overlay.goalTarget)}
-            </span>
-            <span
-              style={{
-                color: accent.secondary,
-                fontSize: "2.05rem",
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase"
-              }}
-            >
-              {overlay.goalLabel}
-            </span>
-          </div>
+        <GoalOverlayContent overlay={overlay} />
+        <div
+          style={{
+            display: "grid",
+            gap: "1.25rem",
+            gridTemplateColumns: "repeat(4, minmax(180px, 1fr))"
+          }}
+        >
+          <SingleMetricOverlayContent accent={overlay.accentColor} label="Coins" metric={overlay.coins} />
+          <SingleMetricOverlayContent accent={overlay.accentColor} label="Daily Hearts" metric={overlay.dailyHearts} />
+          <SingleMetricOverlayContent accent={overlay.accentColor} label="Likes" metric={overlay.likes} />
+          <SingleMetricOverlayContent accent={overlay.accentColor} label="Followers" metric={overlay.followers} />
         </div>
       </section>
+    </OverlayStage>
+  );
+}
 
-      <section
-        style={{
-          display: "grid",
-          gap: "1.8rem",
-          gridTemplateColumns: "repeat(4, minmax(150px, 1fr))",
-          width: "min(100%, 900px)"
-        }}
-      >
-        <MetricCard accent={overlay.accentColor} label="Coins" metric={overlay.coins} />
-        <MetricCard accent={overlay.accentColor} label="Daily Hearts" metric={overlay.dailyHearts} />
-        <MetricCard accent={overlay.accentColor} label="Likes" metric={overlay.likes} />
-        <MetricCard accent={overlay.accentColor} label="Followers" metric={overlay.followers} />
-      </section>
-    </main>
+export function VenusLiveOverlayClient({ panel = "goal" }: { panel?: OverlayPanel }) {
+  const overlay = useLiveOverlayState();
+
+  if (panel === "all") {
+    return <AllOverlay overlay={overlay} />;
+  }
+
+  if (panel === "goal") {
+    return (
+      <OverlayStage padding="1rem">
+        <GoalOverlayContent overlay={overlay} />
+      </OverlayStage>
+    );
+  }
+
+  const config = METRIC_PANEL_CONFIG[panel];
+  return (
+    <OverlayStage padding="1rem">
+      <SingleMetricOverlayContent accent={overlay.accentColor} label={config.label} metric={overlay[config.metricKey]} />
+    </OverlayStage>
   );
 }
