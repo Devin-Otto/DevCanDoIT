@@ -12,10 +12,14 @@ export async function GET(request: NextRequest) {
   }
 
   const document = await loadVenusSyncDocument();
+  const liveOverlay = {
+    ...document.liveOverlay,
+    updatedAt: document.liveOverlay.updatedAt || document.updatedAt
+  };
 
   return NextResponse.json({
-    liveOverlay: document.liveOverlay,
+    liveOverlay,
     revision: document.revision,
-    updatedAt: document.liveOverlay.updatedAt || document.updatedAt
+    updatedAt: liveOverlay.updatedAt
   });
 }

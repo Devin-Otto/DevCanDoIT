@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type OverlayPanel = "all" | "coins" | "daily-hearts" | "followers" | "goal" | "likes";
 
@@ -22,6 +22,8 @@ interface LiveOverlayState {
   likes: OverlayMetric;
   updatedAt?: string;
 }
+
+type LiveOverlayInput = Partial<LiveOverlayState> | undefined;
 
 const DEFAULT_OVERLAY: LiveOverlayState = {
   accentColor: "pink",
@@ -74,6 +76,47 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+function getTimestampValue(value?: string) {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function normalizeMetric(metric: Partial<OverlayMetric> | undefined, fallback: OverlayMetric): OverlayMetric {
+  return {
+    current: typeof metric?.current === "number" && Number.isFinite(metric.current) ? Math.max(0, Math.round(metric.current)) : fallback.current,
+    target: typeof metric?.target === "number" && Number.isFinite(metric.target) ? Math.max(1, Math.round(metric.target)) : fallback.target
+  };
+}
+
+function normalizeOverlay(input?: LiveOverlayInput): LiveOverlayState {
+  return {
+    accentColor: input?.accentColor === "cyan" || input?.accentColor === "purple" || input?.accentColor === "pink"
+      ? input.accentColor
+      : DEFAULT_OVERLAY.accentColor,
+    coins: normalizeMetric(input?.coins, DEFAULT_OVERLAY.coins),
+    dailyHearts: normalizeMetric(input?.dailyHearts, DEFAULT_OVERLAY.dailyHearts),
+    followers: normalizeMetric(input?.followers, DEFAULT_OVERLAY.followers),
+    goalCurrent:
+      typeof input?.goalCurrent === "number" && Number.isFinite(input.goalCurrent)
+        ? Math.max(0, Math.round(input.goalCurrent))
+        : DEFAULT_OVERLAY.goalCurrent,
+    goalLabel:
+      typeof input?.goalLabel === "string" && input.goalLabel.trim()
+        ? input.goalLabel.trim()
+        : DEFAULT_OVERLAY.goalLabel,
+    goalTarget:
+      typeof input?.goalTarget === "number" && Number.isFinite(input.goalTarget)
+        ? Math.max(1, Math.round(input.goalTarget))
+        : DEFAULT_OVERLAY.goalTarget,
+    likes: normalizeMetric(input?.likes, DEFAULT_OVERLAY.likes),
+    updatedAt: typeof input?.updatedAt === "string" ? input.updatedAt : undefined
+  };
+}
+
 function Ring({
   current,
   size,
@@ -118,8 +161,21 @@ function Ring({
   );
 }
 
-function useLiveOverlayState() {
-  const [overlay, setOverlay] = useState<LiveOverlayState>(DEFAULT_OVERLAY);
+function normalizeOverlayResponse(liveOverlay?: LiveOverlayInput, updatedAt?: string): LiveOverlayState | null {
+  if (!liveOverlay) {
+    return null;
+  }
+
+  return normalizeOverlay({
+    ...liveOverlay,
+    updatedAt: liveOverlay.updatedAt || updatedAt
+  });
+}
+
+function useLiveOverlayState(initialOverlay?: LiveOverlayInput) {
+  const normalizedInitialOverlay = normalizeOverlay(initialOverlay);
+  const [overlay, setOverlay] = useState<LiveOverlayState>(normalizedInitialOverlay);
+  const latestOverlayTimestampRef = useRef(getTimestampValue(normalizedInitialOverlay.updatedAt));
 
   useEffect(() => {
     let cancelled = false;
@@ -131,9 +187,14 @@ function useLiveOverlayState() {
           return;
         }
 
-        const payload = (await response.json()) as { liveOverlay?: LiveOverlayState };
-        if (!cancelled && payload.liveOverlay) {
-          setOverlay(payload.liveOverlay);
+        const payload = (await response.json()) as { liveOverlay?: LiveOverlayInput; updatedAt?: string };
+        const nextOverlay = normalizeOverlayResponse(payload.liveOverlay, payload.updatedAt);
+        if (!cancelled && nextOverlay) {
+          const nextTimestamp = getTimestampValue(nextOverlay.updatedAt);
+          if (nextTimestamp >= latestOverlayTimestampRef.current) {
+            latestOverlayTimestampRef.current = nextTimestamp;
+            setOverlay(nextOverlay);
+          }
         }
       } catch {
         // Keep the last visible values if polling temporarily fails.
@@ -349,8 +410,14 @@ function AllOverlay({ overlay }: { overlay: LiveOverlayState }) {
   );
 }
 
-export function VenusLiveOverlayClient({ panel = "goal" }: { panel?: OverlayPanel }) {
-  const overlay = useLiveOverlayState();
+export function VenusLiveOverlayClient({
+  initialOverlay,
+  panel = "goal"
+}: {
+  initialOverlay?: LiveOverlayInput;
+  panel?: OverlayPanel;
+}) {
+  const overlay = useLiveOverlayState(initialOverlay);
 
   if (panel === "all") {
     return <AllOverlay overlay={overlay} />;
