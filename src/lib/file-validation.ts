@@ -1,7 +1,7 @@
 import { open } from "fs/promises";
 import path from "path";
 
-import { fileTypeFromBuffer } from "file-type";
+import { fileTypeFromBuffer } from "file-type/core";
 
 type MediaKind = "image" | "video";
 

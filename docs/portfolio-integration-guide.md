@@ -132,10 +132,11 @@ Example:
   "publicOutput": "public/project-slug",
   "syncCommand": "npm run sync:portfolio",
   "requiredEnv": [
-    "PUBLIC_SITE_URL",
-    "PROJECT_GATE_USERNAME",
-    "PROJECT_GATE_PASSWORD",
-    "PROJECT_GATE_SESSION_SECRET"
+    "NEXT_PUBLIC_SITE_URL",
+    "AUTH_STATE_DATABASE_URL",
+    "AUTH_STATE_DATABASE_AUTH_TOKEN",
+    "PROJECT_INTERNAL_URL",
+    "PROJECT_PROXY_SHARED_SECRET"
   ],
   "assetMode": "filesystem"
 }
@@ -209,6 +210,20 @@ The main integration rule is:
 - private projects should integrate through compiled output, storage-backed assets, or protected routes
 
 If the project is private, it should not appear in the public portfolio cards, public homepage callouts, or public marketing copy.
+
+### Private path-proxy apps
+
+For private tools that run as their own service, prefer the current path-proxy model:
+
+- DevCanDoIt verifies the existing DB-backed admin session from `auth-state` / `admin-auth`.
+- The public route proxies to a private internal service URL.
+- The proxy sends a per-service shared secret such as `X-DevCanDoIt-Proxy-Key`.
+- The upstream private app validates that shared secret on every non-health request.
+- The private app owns its source, runtime, scheduler, database, and private assets.
+
+Do not design new private integrations around standalone `PROJECT_GATE_PASSWORD` or `PROJECT_GATE_SESSION_SECRET` values. Those names describe an older gate pattern and are not the current DevCanDoIt admin-auth contract.
+
+The `/tradingalerts` integration follows this pattern: private Trading Predictions repo, private Railway service, DevCanDoIt admin-auth gate at `/tradingalerts/*`, upstream proxy-secret validation, no sitemap entry, and no public portfolio listing.
 
 ## 11) What To Check Before Merging Any New Project
 

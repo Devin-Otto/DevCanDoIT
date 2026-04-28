@@ -25,6 +25,8 @@ async function configureSecurityEnv() {
   process.env.TRUSTED_MUTATION_ORIGINS = "http://localhost:7261,https://devcandoit.com";
   process.env.TILEOS_INTERNAL_URL = "https://tileos.internal";
   process.env.TILEOS_PROXY_SHARED_SECRET = "tileos-proxy-secret";
+  process.env.TRADING_ALERTS_INTERNAL_URL = "https://trading-alerts.internal";
+  process.env.TRADING_ALERTS_PROXY_SHARED_SECRET = "trading-alerts-proxy-secret";
   process.env.VENUS_GATE_USERNAME = "venus";
   process.env.VENUS_GATE_PASSWORD_SALT = "venus-salt";
   process.env.VENUS_GATE_PASSWORD_HASH = scryptSync("venus-password", "venus-salt", 64).toString("hex");
@@ -40,6 +42,7 @@ async function getModules() {
   const requestSecurity = await import("../../src/lib/request-security.ts");
   const fileValidation = await import("../../src/lib/file-validation.ts");
   const tileosProxy = await import("../../src/lib/tileos-public-proxy.ts");
+  const tradingAlertsProxy = await import("../../src/lib/trading-alerts-proxy.ts");
   const venusAccess = await import("../../src/lib/venus-access.ts");
   const venusAuth = await import("../../src/lib/venus-auth.ts");
 
@@ -49,6 +52,7 @@ async function getModules() {
     fileValidation,
     requestSecurity,
     tileosProxy,
+    tradingAlertsProxy,
     venusAccess,
     venusAuth,
   };
@@ -311,6 +315,60 @@ test("TileOS public proxy strips browser headers and forwards only the shared se
     assert.equal(capturedHeaders?.get("origin"), null);
     assert.equal(capturedHeaders?.get("referer"), null);
     assert.equal(capturedHeaders?.get("x-forwarded-for"), null);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("Trading Alerts proxy preserves callback queries, strips browser headers, and rewrites local redirects", async () => {
+  const { tradingAlertsProxy } = await getModules();
+  const request = buildRequest({
+    accept: "text/html",
+    cookie: "session=abc123",
+    origin: "https://devcandoit.com",
+    referer: "https://devcandoit.com/tradingalerts/settings/calendar",
+    "user-agent": "SecurityTest/1.0",
+    "x-forwarded-for": "198.51.100.10",
+  }) as {
+    headers: Headers;
+    method: string;
+    nextUrl: URL;
+  };
+  request.method = "GET";
+  request.nextUrl = new URL("https://devcandoit.com/tradingalerts/api/google/callback?code=abc&state=xyz");
+
+  const originalFetch = global.fetch;
+  let capturedUrl: string | null = null;
+  let capturedHeaders: Headers | null = null;
+
+  global.fetch = (async (input: URL | RequestInfo, init?: RequestInit) => {
+    capturedUrl = String(input);
+    capturedHeaders = new Headers(init?.headers);
+    return new Response("", {
+      headers: {
+        Location: "/settings/calendar?connected=1",
+      },
+      status: 302,
+    });
+  }) as typeof fetch;
+
+  try {
+    const response = await tradingAlertsProxy.forwardTradingAlertsRequest({
+      pathSegments: ["api", "google", "callback"],
+      request: request as never,
+    });
+
+    assert.equal(response.status, 302);
+    assert.equal(capturedUrl, "https://trading-alerts.internal/api/google/callback?code=abc&state=xyz");
+    assert.ok(capturedHeaders);
+    assert.equal(capturedHeaders?.get("x-devcandoit-proxy-key"), "trading-alerts-proxy-secret");
+    assert.equal(capturedHeaders?.get("x-forwarded-prefix"), "/tradingalerts");
+    assert.equal(capturedHeaders?.get("user-agent"), "SecurityTest/1.0");
+    assert.equal(capturedHeaders?.get("cookie"), null);
+    assert.equal(capturedHeaders?.get("origin"), null);
+    assert.equal(capturedHeaders?.get("referer"), null);
+    assert.equal(capturedHeaders?.get("x-forwarded-for"), null);
+    assert.equal(response.headers.get("location"), "/tradingalerts/settings/calendar?connected=1");
   } finally {
     global.fetch = originalFetch;
   }

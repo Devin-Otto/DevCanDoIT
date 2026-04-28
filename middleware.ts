@@ -70,8 +70,10 @@ export async function middleware(request: NextRequest) {
     pathname === "/leads" ||
     pathname.startsWith("/leads") ||
     pathname.startsWith("/api/leads") ||
-    pathname.startsWith("/api/admin");
+    pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/tradingalerts");
   const isManagePath = pathname.startsWith("/manage") || pathname.startsWith("/api/manage");
+  const isTradingAlertsPath = pathname === "/tradingalerts" || pathname.startsWith("/tradingalerts/");
 
   if (pathname === "/venus-login") {
     if (!isVenusGateConfigured()) {
@@ -160,6 +162,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (isTradingAlertsPath) {
+    if (!authed) {
+      if (pathname.startsWith("/tradingalerts/api")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const loginUrl = buildRedirectUrl(request, "/admin/login");
+      loginUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/admin")) {
     if (!authed) {
       return NextResponse.redirect(buildRedirectUrl(request, "/admin/login"));
@@ -181,6 +196,8 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/admin",
+    "/tradingalerts",
+    "/tradingalerts/:path*",
     "/manage/:path*",
     "/manage",
     "/leads",
