@@ -13,15 +13,27 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminLoginPage() {
+interface AdminLoginPageProps {
+  searchParams: Promise<{
+    next?: string;
+  }>;
+}
+
+function getSafeNextPath(next?: string) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/admin";
+}
+
+export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
   if (isPublicSiteOnly) {
     notFound();
   }
 
+  const params = await searchParams;
+  const nextPath = getSafeNextPath(params.next);
   const cookieStore = await cookies();
   const session = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
   if (await verifyAdminSessionToken(session)) {
-    redirect("/admin");
+    redirect(nextPath);
   }
 
   return (
@@ -43,7 +55,7 @@ export default async function AdminLoginPage() {
       </section>
 
       <section className="lead-form-wrap">
-        <AdminLoginForm />
+        <AdminLoginForm redirectTo={nextPath} />
       </section>
     </main>
   );
