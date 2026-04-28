@@ -1,6 +1,10 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import type { CompanionOverlaySettings } from "@/lib/venus-companions";
+import { normalizeCompanionSettings } from "@/lib/venus-companions";
+import type { OverlayStylesSettings } from "@/lib/venus-overlay-theme";
+import { normalizeOverlayStyles } from "@/lib/venus-overlay-theme";
 import { getVideoAssetRoot } from "@/lib/video-assets";
 
 type JsonPrimitive = boolean | null | number | string;
@@ -111,6 +115,7 @@ export interface VenusSyncPreferences {
     triggerHotkey?: string;
   };
   buttonTheme?: "cyan" | "pink" | "purple";
+  companions?: CompanionOverlaySettings;
   defaultView?: "detail" | "home" | "library" | "preferences" | "setlists" | "tools";
   desktopPerformance?: {
     disableAnniversaryIntro?: boolean;
@@ -124,6 +129,7 @@ export interface VenusSyncPreferences {
   desktopPerformanceMode?: "standard" | "stream-safe";
   heroImage?: string;
   locale?: "en" | "ru";
+  overlayStyles?: OverlayStylesSettings;
   navigationHotkeys?: {
     back?: string;
   };
@@ -524,6 +530,14 @@ function sanitizePreferences(value: unknown): VenusSyncPreferences | undefined {
     preferences.typography && typeof preferences.typography === "object"
       ? (preferences.typography as Record<string, unknown>)
       : null;
+  const rawOverlayStyles =
+    preferences.overlayStyles && typeof preferences.overlayStyles === "object"
+      ? (preferences.overlayStyles as OverlayStylesSettings)
+      : null;
+  const rawCompanions =
+    preferences.companions && typeof preferences.companions === "object"
+      ? (preferences.companions as CompanionOverlaySettings)
+      : null;
   const rawVolumeBehavior =
     preferences.volumeBehavior && typeof preferences.volumeBehavior === "object"
       ? (preferences.volumeBehavior as Record<string, unknown>)
@@ -556,6 +570,7 @@ function sanitizePreferences(value: unknown): VenusSyncPreferences | undefined {
     buttonTheme: VALID_BUTTON_THEMES.has(sanitizeString(preferences.buttonTheme))
       ? (sanitizeString(preferences.buttonTheme) as VenusSyncPreferences["buttonTheme"])
       : "pink",
+    companions: normalizeCompanionSettings(rawCompanions ?? undefined),
     defaultView: VALID_DEFAULT_VIEWS.has(sanitizeString(preferences.defaultView))
       ? (sanitizeString(preferences.defaultView) as VenusSyncPreferences["defaultView"])
       : "home",
@@ -575,6 +590,7 @@ function sanitizePreferences(value: unknown): VenusSyncPreferences | undefined {
     locale: VALID_LOCALES.has(sanitizeString(preferences.locale))
       ? (sanitizeString(preferences.locale) as VenusSyncPreferences["locale"])
       : "en",
+    overlayStyles: normalizeOverlayStyles(rawOverlayStyles ?? undefined),
     navigationHotkeys: {
       back: sanitizeString(rawNavigationHotkeys?.back)
     },

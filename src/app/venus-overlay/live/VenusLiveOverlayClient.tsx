@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-export type OverlayPanel = "all" | "coins" | "daily-hearts" | "followers" | "goal" | "likes";
-
-type OverlayAccentColor = "cyan" | "pink" | "purple";
+import {
+  type OverlayPanel,
+  type OverlayPanelId,
+  type OverlayStylesSettings,
+  DEFAULT_OVERLAY_STYLES,
+  getOverlayFontFamilyStack,
+  getOverlayThemeById,
+  normalizeOverlayStyles,
+  overlayColorToCssRgba,
+  routePanelToOverlayPanelId
+} from "@/lib/venus-overlay-theme";
 
 interface OverlayMetric {
   current: number;
@@ -12,7 +20,7 @@ interface OverlayMetric {
 }
 
 interface LiveOverlayState {
-  accentColor: OverlayAccentColor;
+  accentColor: "cyan" | "pink" | "purple";
   coins: OverlayMetric;
   dailyHearts: OverlayMetric;
   followers: OverlayMetric;
@@ -36,33 +44,15 @@ const DEFAULT_OVERLAY: LiveOverlayState = {
   likes: { current: 0, target: 5000 }
 };
 
-const ACCENT_COLORS: Record<OverlayAccentColor, { glow: string; primary: string; secondary: string; track: string }> = {
-  cyan: {
-    glow: "rgba(109, 236, 255, 0.35)",
-    primary: "#6decff",
-    secondary: "#9fd4ff",
-    track: "rgba(255,255,255,0.22)"
-  },
-  pink: {
-    glow: "rgba(255, 102, 196, 0.34)",
-    primary: "#ff66c4",
-    secondary: "#ffb0dd",
-    track: "rgba(255,255,255,0.22)"
-  },
-  purple: {
-    glow: "rgba(176, 130, 255, 0.35)",
-    primary: "#b082ff",
-    secondary: "#dcc7ff",
-    track: "rgba(255,255,255,0.22)"
-  }
-};
-
-const METRIC_PANEL_CONFIG: Record<Exclude<OverlayPanel, "all" | "goal">, { label: string; metricKey: keyof Pick<LiveOverlayState, "coins" | "dailyHearts" | "followers" | "likes"> }> = {
-  coins: { label: "Coins", metricKey: "coins" },
-  "daily-hearts": { label: "Daily Hearts", metricKey: "dailyHearts" },
-  followers: { label: "Followers", metricKey: "followers" },
-  likes: { label: "Likes", metricKey: "likes" }
-};
+const METRIC_ROUTE_CONFIG = {
+  coins: { label: "Coins", metricKey: "coins", panelId: "coins" },
+  "daily-hearts": { label: "Daily Hearts", metricKey: "dailyHearts", panelId: "dailyHearts" },
+  followers: { label: "Followers", metricKey: "followers", panelId: "followers" },
+  likes: { label: "Likes", metricKey: "likes", panelId: "likes" }
+} as const satisfies Record<
+  Exclude<OverlayPanel, "all" | "goal">,
+  { label: string; metricKey: keyof Pick<LiveOverlayState, "coins" | "dailyHearts" | "followers" | "likes">; panelId: OverlayPanelId }
+>;
 
 function clampPercent(current: number, target: number) {
   if (!target) {
@@ -94,9 +84,7 @@ function normalizeMetric(metric: Partial<OverlayMetric> | undefined, fallback: O
 
 function normalizeOverlay(input?: LiveOverlayInput): LiveOverlayState {
   return {
-    accentColor: input?.accentColor === "cyan" || input?.accentColor === "purple" || input?.accentColor === "pink"
-      ? input.accentColor
-      : DEFAULT_OVERLAY.accentColor,
+    accentColor: input?.accentColor === "cyan" || input?.accentColor === "purple" || input?.accentColor === "pink" ? input.accentColor : DEFAULT_OVERLAY.accentColor,
     coins: normalizeMetric(input?.coins, DEFAULT_OVERLAY.coins),
     dailyHearts: normalizeMetric(input?.dailyHearts, DEFAULT_OVERLAY.dailyHearts),
     followers: normalizeMetric(input?.followers, DEFAULT_OVERLAY.followers),
@@ -104,10 +92,7 @@ function normalizeOverlay(input?: LiveOverlayInput): LiveOverlayState {
       typeof input?.goalCurrent === "number" && Number.isFinite(input.goalCurrent)
         ? Math.max(0, Math.round(input.goalCurrent))
         : DEFAULT_OVERLAY.goalCurrent,
-    goalLabel:
-      typeof input?.goalLabel === "string" && input.goalLabel.trim()
-        ? input.goalLabel.trim()
-        : DEFAULT_OVERLAY.goalLabel,
+    goalLabel: typeof input?.goalLabel === "string" && input.goalLabel.trim() ? input.goalLabel.trim() : DEFAULT_OVERLAY.goalLabel,
     goalTarget:
       typeof input?.goalTarget === "number" && Number.isFinite(input.goalTarget)
         ? Math.max(1, Math.round(input.goalTarget))
@@ -115,50 +100,6 @@ function normalizeOverlay(input?: LiveOverlayInput): LiveOverlayState {
     likes: normalizeMetric(input?.likes, DEFAULT_OVERLAY.likes),
     updatedAt: typeof input?.updatedAt === "string" ? input.updatedAt : undefined
   };
-}
-
-function Ring({
-  current,
-  size,
-  strokeWidth,
-  target,
-  trackColor,
-  valueColor
-}: OverlayMetric & {
-  size: number;
-  strokeWidth: number;
-  trackColor: string;
-  valueColor: string;
-}) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const percent = clampPercent(current, target);
-  const dashOffset = circumference - (percent / 100) * circumference;
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        fill="none"
-        r={radius}
-        stroke={trackColor}
-        strokeWidth={strokeWidth}
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        fill="none"
-        r={radius}
-        stroke={valueColor}
-        strokeDasharray={circumference}
-        strokeDashoffset={dashOffset}
-        strokeLinecap="round"
-        strokeWidth={strokeWidth}
-        style={{ filter: `drop-shadow(0 0 14px ${valueColor})`, transform: "rotate(-90deg)", transformOrigin: "50% 50%" }}
-      />
-    </svg>
-  );
 }
 
 function normalizeOverlayResponse(liveOverlay?: LiveOverlayInput, updatedAt?: string): LiveOverlayState | null {
@@ -172,9 +113,26 @@ function normalizeOverlayResponse(liveOverlay?: LiveOverlayInput, updatedAt?: st
   });
 }
 
-function useLiveOverlayState(initialOverlay?: LiveOverlayInput) {
+function createAnimationStyle(theme: OverlayStylesSettings["themes"][number]) {
+  if (theme.effects.animation.mode === "none") {
+    return undefined;
+  }
+
+  return {
+    animationDelay: `${theme.effects.animation.delayMs}ms`,
+    animationDirection: theme.effects.animation.repeatMode === "alternate" ? "alternate" : "normal",
+    animationDuration: `${theme.effects.animation.durationMs}ms`,
+    animationIterationCount: "infinite",
+    animationName: theme.effects.animation.mode === "fade" ? "venus-overlay-fade" : "venus-overlay-wave",
+    animationTimingFunction: theme.effects.animation.easing
+  } as const;
+}
+
+function useOverlayFeed(initialOverlay?: LiveOverlayInput, initialOverlayStyles?: Partial<OverlayStylesSettings>) {
   const normalizedInitialOverlay = normalizeOverlay(initialOverlay);
+  const normalizedInitialStyles = normalizeOverlayStyles(initialOverlayStyles ?? DEFAULT_OVERLAY_STYLES);
   const [overlay, setOverlay] = useState<LiveOverlayState>(normalizedInitialOverlay);
+  const [overlayStyles, setOverlayStyles] = useState<OverlayStylesSettings>(normalizedInitialStyles);
   const latestOverlayTimestampRef = useRef(getTimestampValue(normalizedInitialOverlay.updatedAt));
 
   useEffect(() => {
@@ -187,14 +145,23 @@ function useLiveOverlayState(initialOverlay?: LiveOverlayInput) {
           return;
         }
 
-        const payload = (await response.json()) as { liveOverlay?: LiveOverlayInput; updatedAt?: string };
+        const payload = (await response.json()) as {
+          liveOverlay?: LiveOverlayInput;
+          overlayStyles?: Partial<OverlayStylesSettings>;
+          updatedAt?: string;
+        };
         const nextOverlay = normalizeOverlayResponse(payload.liveOverlay, payload.updatedAt);
+
         if (!cancelled && nextOverlay) {
           const nextTimestamp = getTimestampValue(nextOverlay.updatedAt);
           if (nextTimestamp >= latestOverlayTimestampRef.current) {
             latestOverlayTimestampRef.current = nextTimestamp;
             setOverlay(nextOverlay);
           }
+        }
+
+        if (!cancelled && payload.overlayStyles) {
+          setOverlayStyles(normalizeOverlayStyles(payload.overlayStyles));
         }
       } catch {
         // Keep the last visible values if polling temporarily fails.
@@ -212,19 +179,26 @@ function useLiveOverlayState(initialOverlay?: LiveOverlayInput) {
     };
   }, []);
 
-  return overlay;
+  return { overlay, overlayStyles };
+}
+
+function buildTextShadow(theme: OverlayStylesSettings["themes"][number]) {
+  if (!theme.effects.textShadow.enabled) {
+    return "none";
+  }
+
+  return `${theme.effects.textShadow.offsetX}px ${theme.effects.textShadow.offsetY}px ${theme.effects.textShadow.blur}px ${overlayColorToCssRgba(
+    theme.effects.textShadow.color,
+    "rgba(0,0,0,0.42)"
+  )}`;
 }
 
 function OverlayStage({
   children,
-  justify = "center",
-  padding = "1.5rem",
-  width = "100vw"
+  padding = "1rem"
 }: {
   children: React.ReactNode;
-  justify?: "center" | "start";
   padding?: string;
-  width?: string;
 }) {
   return (
     <main
@@ -233,78 +207,124 @@ function OverlayStage({
         background: "transparent",
         color: "#ffffff",
         display: "grid",
-        fontFamily: '"Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif',
-        justifyItems: justify,
+        justifyItems: "center",
         margin: 0,
         minHeight: "100vh",
         padding,
-        textShadow: "0 2px 18px rgba(0,0,0,0.45)",
         userSelect: "none",
-        width
+        width: "100vw"
       }}
     >
+      <style>
+        {`
+          @keyframes venus-overlay-fade {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.58; }
+          }
+
+          @keyframes venus-overlay-wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+          }
+        `}
+      </style>
       {children}
     </main>
   );
 }
 
-function GoalOverlayContent({ overlay }: { overlay: LiveOverlayState }) {
-  const accent = ACCENT_COLORS[overlay.accentColor];
+function GoalOverlayContent({
+  overlay,
+  overlayStyles
+}: {
+  overlay: LiveOverlayState;
+  overlayStyles: OverlayStylesSettings;
+}) {
+  const assignment = overlayStyles.panelAssignments.goal;
+  const theme = getOverlayThemeById(overlayStyles.themes, assignment.themeId);
   const goalPercent = clampPercent(overlay.goalCurrent, overlay.goalTarget);
+  const width = 420 * assignment.wheelScale;
+  const height = 300 * assignment.wheelScale;
+  const fillColor = theme.wheel.fillMode === "progress-gradient" ? "url(#goal-overlay-gradient)" : theme.wheel.solidColor;
+  const animationStyle = createAnimationStyle(theme);
+  const wheelGlow = theme.effects.wheelGlow.enabled
+    ? `drop-shadow(0 0 ${theme.effects.wheelGlow.blur}px ${overlayColorToCssRgba(theme.effects.wheelGlow.color, theme.effects.wheelGlow.color)})`
+    : undefined;
 
   return (
     <section
       style={{
         alignItems: "center",
         display: "grid",
+        fontFamily: getOverlayFontFamilyStack(theme.typography.fontFamily),
+        fontWeight: theme.typography.fontWeight,
         justifyItems: "center",
-        minWidth: 420
+        minWidth: width
       }}
     >
-      <div style={{ position: "relative", width: 420, height: 286 }}>
-        <svg width="420" height="286" viewBox="0 0 420 286" aria-hidden="true">
+      <div style={{ position: "relative", width, height }}>
+        <svg width={width} height={height} viewBox="0 0 420 300" aria-hidden="true" style={{ overflow: "visible" }}>
+          <defs>
+            <linearGradient id="goal-overlay-gradient" x1="48" y1="198" x2="372" y2="198" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor={theme.wheel.gradientStartColor} />
+              <stop offset="100%" stopColor={theme.wheel.gradientEndColor} />
+            </linearGradient>
+          </defs>
+          {theme.effects.glassPlate.enabled ? (
+            <path
+              d="M 90 198 A 120 120 0 0 1 330 198 L 300 198 A 90 90 0 0 0 120 198 Z"
+              fill={overlayColorToCssRgba(theme.effects.glassPlate.fillColor, theme.effects.glassPlate.fillColor)}
+              stroke={overlayColorToCssRgba(theme.effects.glassPlate.borderColor, theme.effects.glassPlate.borderColor)}
+              strokeWidth="1.2"
+              style={{ filter: `blur(${theme.effects.glassPlate.blur * 0.08}px)` }}
+            />
+          ) : null}
           <path
             d="M 48 198 A 162 162 0 0 1 372 198"
             fill="none"
-            stroke={accent.track}
+            stroke={theme.wheel.trackColor}
             strokeLinecap="round"
-            strokeWidth="26"
+            strokeWidth={theme.wheel.strokeWidth}
           />
           <path
             d="M 48 198 A 162 162 0 0 1 372 198"
             fill="none"
             pathLength="100"
-            stroke={accent.primary}
+            stroke={fillColor}
             strokeDasharray={`${goalPercent} 100`}
             strokeLinecap="round"
-            strokeWidth="26"
-            style={{ filter: `drop-shadow(0 0 18px ${accent.glow})` }}
+            strokeWidth={theme.wheel.strokeWidth}
+            style={{
+              ...animationStyle,
+              filter: wheelGlow
+            }}
           />
         </svg>
         <div
           style={{
             alignItems: "center",
+            color: overlayColorToCssRgba(theme.typography.textColor, theme.typography.textColor),
             display: "grid",
-            gap: "0.5rem",
+            gap: "0.45rem",
             inset: 0,
             justifyItems: "center",
-            paddingBottom: "1.4rem",
-            paddingTop: "0.9rem",
-            position: "absolute"
+            paddingBottom: `${1.4 * assignment.wheelScale}rem`,
+            paddingTop: `${0.8 * assignment.wheelScale}rem`,
+            position: "absolute",
+            textShadow: buildTextShadow(theme)
           }}
         >
-          <strong style={{ fontSize: "5rem", lineHeight: 0.95 }}>{goalPercent}%</strong>
-          <span style={{ fontSize: "3.25rem", fontWeight: 800, lineHeight: 1 }}>
+          <strong style={{ fontSize: `${5 * assignment.percentTextScale}rem`, lineHeight: 0.95 }}>{goalPercent}%</strong>
+          <span style={{ fontSize: `${3.25 * assignment.valueTextScale}rem`, fontWeight: theme.typography.fontWeight, lineHeight: 1 }}>
             {formatNumber(overlay.goalCurrent)}/{formatNumber(overlay.goalTarget)}
           </span>
           <span
             style={{
-              color: accent.secondary,
-              fontSize: "1.55rem",
-              fontWeight: 800,
+              color: overlayColorToCssRgba(theme.typography.labelColor, theme.typography.labelColor),
+              fontSize: `${1.5 * assignment.labelTextScale}rem`,
               letterSpacing: "0.14em",
               lineHeight: 1.1,
-              marginTop: "0.7rem",
+              marginTop: "0.55rem",
               textAlign: "center",
               textTransform: "uppercase"
             }}
@@ -318,60 +338,110 @@ function GoalOverlayContent({ overlay }: { overlay: LiveOverlayState }) {
 }
 
 function SingleMetricOverlayContent({
-  accent,
   label,
-  metric
+  metric,
+  overlayStyles,
+  panelId
 }: {
-  accent: OverlayAccentColor;
   label: string;
   metric: OverlayMetric;
+  overlayStyles: OverlayStylesSettings;
+  panelId: OverlayPanelId;
 }) {
-  const colors = ACCENT_COLORS[accent];
+  const assignment = overlayStyles.panelAssignments[panelId];
+  const theme = getOverlayThemeById(overlayStyles.themes, assignment.themeId);
   const percent = clampPercent(metric.current, metric.target);
+  const canvasSize = 220 * assignment.wheelScale;
+  const ringSize = 168 * assignment.wheelScale;
+  const strokeWidth = theme.wheel.strokeWidth * 0.42;
+  const radius = (ringSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (percent / 100) * circumference;
+  const center = canvasSize / 2;
+  const gradientId = `overlay-gradient-${panelId}`;
+  const fillColor = theme.wheel.fillMode === "progress-gradient" ? `url(#${gradientId})` : theme.wheel.solidColor;
+  const animationStyle = createAnimationStyle(theme);
+  const wheelGlow = theme.effects.wheelGlow.enabled
+    ? `drop-shadow(0 0 ${theme.effects.wheelGlow.blur}px ${overlayColorToCssRgba(theme.effects.wheelGlow.color, theme.effects.wheelGlow.color)})`
+    : undefined;
 
   return (
     <section
       style={{
         alignItems: "center",
         display: "grid",
-        gap: "0.65rem",
+        gap: "0.6rem",
+        fontFamily: getOverlayFontFamilyStack(theme.typography.fontFamily),
+        fontWeight: theme.typography.fontWeight,
         justifyItems: "center",
-        minWidth: 220
+        minWidth: Math.max(canvasSize + 24, 220)
       }}
     >
-      <div style={{ position: "relative", width: 168, height: 168 }}>
-        <Ring
-          current={metric.current}
-          size={168}
-          strokeWidth={14}
-          target={metric.target}
-          trackColor={colors.track}
-          valueColor={colors.primary}
-        />
+      <div style={{ position: "relative", width: canvasSize, height: canvasSize }}>
+        <svg width={canvasSize} height={canvasSize} viewBox={`0 0 ${canvasSize} ${canvasSize}`} aria-hidden="true" style={{ overflow: "visible" }}>
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={theme.wheel.gradientStartColor} />
+              <stop offset="100%" stopColor={theme.wheel.gradientEndColor} />
+            </linearGradient>
+          </defs>
+          {theme.effects.glassPlate.enabled ? (
+            <circle
+              cx={center}
+              cy={center}
+              r={Math.max(radius - strokeWidth * 0.8, 1)}
+              fill={overlayColorToCssRgba(theme.effects.glassPlate.fillColor, theme.effects.glassPlate.fillColor)}
+              stroke={overlayColorToCssRgba(theme.effects.glassPlate.borderColor, theme.effects.glassPlate.borderColor)}
+              strokeWidth="1.2"
+              style={{ filter: `blur(${theme.effects.glassPlate.blur * 0.08}px)` }}
+            />
+          ) : null}
+          <circle cx={center} cy={center} fill="none" r={radius} stroke={theme.wheel.trackColor} strokeWidth={strokeWidth} />
+          <g style={animationStyle}>
+            <circle
+              cx={center}
+              cy={center}
+              fill="none"
+              r={radius}
+              stroke={fillColor}
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
+              strokeLinecap="round"
+              strokeWidth={strokeWidth}
+              style={{
+                filter: wheelGlow,
+                transform: "rotate(-90deg)",
+                transformOrigin: "50% 50%"
+              }}
+            />
+          </g>
+        </svg>
         <div
           style={{
             alignItems: "center",
+            color: overlayColorToCssRgba(theme.typography.textColor, theme.typography.textColor),
             display: "grid",
             gap: "0.15rem",
             inset: 0,
             justifyItems: "center",
-            position: "absolute"
+            position: "absolute",
+            textShadow: buildTextShadow(theme)
           }}
         >
-          <strong style={{ fontSize: "2.55rem", lineHeight: 1 }}>{percent}%</strong>
-          <span style={{ fontSize: "1.1rem", fontWeight: 700, lineHeight: 1.1 }}>
+          <strong style={{ fontSize: `${2.55 * assignment.percentTextScale}rem`, lineHeight: 1 }}>{percent}%</strong>
+          <span style={{ fontSize: `${1.08 * assignment.valueTextScale}rem`, lineHeight: 1.1 }}>
             {formatNumber(metric.current)}/{formatNumber(metric.target)}
           </span>
         </div>
       </div>
       <strong
         style={{
-          color: colors.secondary,
-          fontSize: "1.1rem",
-          fontWeight: 800,
+          color: overlayColorToCssRgba(theme.typography.labelColor, theme.typography.labelColor),
+          fontSize: `${1.08 * assignment.labelTextScale}rem`,
           letterSpacing: "0.12em",
           lineHeight: 1.15,
           textAlign: "center",
+          textShadow: buildTextShadow(theme),
           textTransform: "uppercase"
         }}
       >
@@ -381,29 +451,35 @@ function SingleMetricOverlayContent({
   );
 }
 
-function AllOverlay({ overlay }: { overlay: LiveOverlayState }) {
+function AllOverlay({
+  overlay,
+  overlayStyles
+}: {
+  overlay: LiveOverlayState;
+  overlayStyles: OverlayStylesSettings;
+}) {
   return (
     <OverlayStage padding="1.5rem 2rem">
       <section
         style={{
           alignItems: "center",
           display: "grid",
-          gap: "2.2rem",
+          gap: "2rem",
           justifyItems: "center"
         }}
       >
-        <GoalOverlayContent overlay={overlay} />
+        <GoalOverlayContent overlay={overlay} overlayStyles={overlayStyles} />
         <div
           style={{
             display: "grid",
-            gap: "1.25rem",
+            gap: "1.2rem",
             gridTemplateColumns: "repeat(4, minmax(180px, 1fr))"
           }}
         >
-          <SingleMetricOverlayContent accent={overlay.accentColor} label="Coins" metric={overlay.coins} />
-          <SingleMetricOverlayContent accent={overlay.accentColor} label="Daily Hearts" metric={overlay.dailyHearts} />
-          <SingleMetricOverlayContent accent={overlay.accentColor} label="Likes" metric={overlay.likes} />
-          <SingleMetricOverlayContent accent={overlay.accentColor} label="Followers" metric={overlay.followers} />
+          <SingleMetricOverlayContent label="Coins" metric={overlay.coins} overlayStyles={overlayStyles} panelId="coins" />
+          <SingleMetricOverlayContent label="Daily Hearts" metric={overlay.dailyHearts} overlayStyles={overlayStyles} panelId="dailyHearts" />
+          <SingleMetricOverlayContent label="Likes" metric={overlay.likes} overlayStyles={overlayStyles} panelId="likes" />
+          <SingleMetricOverlayContent label="Followers" metric={overlay.followers} overlayStyles={overlayStyles} panelId="followers" />
         </div>
       </section>
     </OverlayStage>
@@ -412,29 +488,36 @@ function AllOverlay({ overlay }: { overlay: LiveOverlayState }) {
 
 export function VenusLiveOverlayClient({
   initialOverlay,
+  initialOverlayStyles,
   panel = "goal"
 }: {
   initialOverlay?: LiveOverlayInput;
+  initialOverlayStyles?: Partial<OverlayStylesSettings>;
   panel?: OverlayPanel;
 }) {
-  const overlay = useLiveOverlayState(initialOverlay);
+  const { overlay, overlayStyles } = useOverlayFeed(initialOverlay, initialOverlayStyles);
+  const singlePanelId = useMemo(() => routePanelToOverlayPanelId(panel), [panel]);
 
   if (panel === "all") {
-    return <AllOverlay overlay={overlay} />;
+    return <AllOverlay overlay={overlay} overlayStyles={overlayStyles} />;
   }
 
   if (panel === "goal") {
     return (
       <OverlayStage padding="1rem">
-        <GoalOverlayContent overlay={overlay} />
+        <GoalOverlayContent overlay={overlay} overlayStyles={overlayStyles} />
       </OverlayStage>
     );
   }
 
-  const config = METRIC_PANEL_CONFIG[panel];
+  if (!singlePanelId) {
+    return null;
+  }
+
+  const config = METRIC_ROUTE_CONFIG[panel];
   return (
     <OverlayStage padding="1rem">
-      <SingleMetricOverlayContent accent={overlay.accentColor} label={config.label} metric={overlay[config.metricKey]} />
+      <SingleMetricOverlayContent label={config.label} metric={overlay[config.metricKey]} overlayStyles={overlayStyles} panelId={singlePanelId} />
     </OverlayStage>
   );
 }

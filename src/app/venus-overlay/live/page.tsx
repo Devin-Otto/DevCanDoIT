@@ -11,5 +11,5 @@ export default async function VenusLiveOverlayPage() {
     updatedAt: document.liveOverlay.updatedAt || document.updatedAt
   };
 
-  return <VenusLiveOverlayClient initialOverlay={initialOverlay} panel="goal" />;
+  return <VenusLiveOverlayClient initialOverlay={initialOverlay} initialOverlayStyles={document.preferences?.overlayStyles} panel="goal" />;
 }

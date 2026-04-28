@@ -10,6 +10,8 @@ const venusRoot = process.env.VENUS_REPO_PATH
   : path.resolve(websiteRoot, "../Venus");
 const venusDist = path.join(venusRoot, "dist");
 const targetDir = path.join(websiteRoot, "public", "Venus");
+const companionSpriteSourceDir = path.join(venusRoot, "sprites");
+const companionSpriteTargetDir = path.join(websiteRoot, "public", "venus-companions", "sprites");
 const EXCLUDED_PUBLIC_VENUS_FILES = new Set([
   "favicon-32.png",
   "favicon-192.png",
@@ -58,5 +60,12 @@ fs.cpSync(venusDist, targetDir, {
   }
 });
 
+if (fs.existsSync(companionSpriteSourceDir)) {
+  fs.rmSync(companionSpriteTargetDir, { recursive: true, force: true });
+  fs.mkdirSync(path.dirname(companionSpriteTargetDir), { recursive: true });
+  fs.cpSync(companionSpriteSourceDir, companionSpriteTargetDir, { recursive: true });
+}
+
 console.log(`Synced hosted workspace build into ${targetDir}.`);
+console.log(`Synced companion sprite sheets into ${companionSpriteTargetDir}.`);
 console.log("Commit the updated public/Venus files in DevCanDoIT so Railway can deploy them.");

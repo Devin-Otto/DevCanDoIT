@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     liveOverlay,
+    overlayStyles: document.preferences?.overlayStyles,
     revision: document.revision,
     updatedAt: liveOverlay.updatedAt
   });

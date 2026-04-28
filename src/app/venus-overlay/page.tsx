@@ -31,6 +31,11 @@ const OVERLAY_LINKS = [
     href: "/venus-overlay/live/all",
     label: "All layers",
   },
+  {
+    description: "Animated sprite companion scene.",
+    href: "/venus-overlay/companions",
+    label: "Companion scene",
+  },
 ];
 
 export const dynamic = "force-dynamic";

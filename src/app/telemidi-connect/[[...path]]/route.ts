@@ -1,9 +1,11 @@
 import { createReadStream } from "node:fs";
-import { access, stat } from "node:fs/promises";
+import { access, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 
 import { NextRequest } from "next/server";
+
+import { injectTelemidiRuntime } from "@/lib/telemidi-runtime";
 
 export const runtime = "nodejs";
 
@@ -66,6 +68,22 @@ async function fileExists(filePath: string) {
 }
 
 async function serveAsset(filePath: string) {
+  if (filePath.endsWith(`${path.sep}index.html`)) {
+    const html = injectTelemidiRuntime(await readFile(filePath, "utf8"));
+    const body = Buffer.from(html, "utf8");
+    const headers = new Headers({
+      "Cache-Control": "no-cache",
+      "Content-Security-Policy": TELEMIDI_CSP,
+      "Content-Length": String(body.byteLength),
+      "Content-Type": getMimeType(filePath),
+    });
+
+    return new Response(body, {
+      headers,
+      status: 200,
+    });
+  }
+
   const fileStats = await stat(filePath);
   const headers = new Headers({
     "Cache-Control": filePath.endsWith(".html") || filePath.endsWith(".json") || filePath.endsWith(".webmanifest")

@@ -2,10 +2,3 @@ title = "DevCanDoIt Gitleaks Config"
 
 [extend]
 useDefault = true
-
-[[allowlists]]
-description = "Allow public TeleMIDI Firebase client config"
-paths = [
-  '''public/telemidi-connect/index\.html''',
-  '''public/telemidi-connect/assets/telemidi-app\.js''',
-]

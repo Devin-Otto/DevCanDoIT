@@ -21,6 +21,7 @@ Optional:
 
 - Add `GMAIL_USER` and `GMAIL_APP_PASSWORD` locally if you want contact form email delivery.
 - Add `FIREBASE_SERVICE_ACCOUNT_JSON` if you want the public TeleMIDI session create/join APIs to work locally.
+- Add `TELEMIDI_FIREBASE_WEB_CONFIG_JSON` if you want `/telemidi-connect` to auto-load Firebase config instead of falling back to manual setup.
 - Keep secrets in `.env.local`; the generated file is not committed.
 
 ## Live site
