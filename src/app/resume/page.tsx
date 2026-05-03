@@ -13,7 +13,7 @@ const summaryPoints = [
 
 const resumeTranscript = `DEVIN OTTO
 
-Los Angeles, CA | 310 971 1108 | devinotto26@gmail.com | linkedin.com/in/devinjotto
+Los Angeles, CA | 310 971 1108 | devin@devcandoit.com | linkedin.com/in/devinjotto
 
 Professional Summary
 AI engineer with 6 years of experience designing and deploying scalable machine learning and MLOps pipelines. Skilled in Python, AWS SageMaker, Databricks, Spark, and PyTorch for building and operationalizing models including fine-tuned GPT-4. Built low-latency inference services and led cross-functional teams to deliver end-to-end AI solutions.

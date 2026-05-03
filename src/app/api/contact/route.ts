@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     const gmailUser = process.env.GMAIL_USER;
     const gmailPassword = process.env.GMAIL_APP_PASSWORD;
-    const inbox = process.env.CONTACT_INBOX || "devinotto26@gmail.com";
+    const inbox = process.env.CONTACT_INBOX || "devin@devcandoit.com";
     const tag = process.env.CONTACT_TAG || "DEV_CANDO_IT_LEAD";
 
     if (!gmailUser || !gmailPassword) {

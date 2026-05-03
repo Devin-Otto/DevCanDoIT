@@ -270,14 +270,6 @@ export default async function HomePage() {
 
         <div className="contact-sidebar">
           <DigitalCard compact />
-          <article className="surface-card">
-            <p className="eyebrow">What happens next</p>
-            <h3>Tagged email delivery</h3>
-            <p>
-              Contact form messages route to <strong>{siteConfig.email}</strong> with the subject tag{" "}
-              <strong>{siteConfig.contactTag}</strong> so you can filter inquiries later.
-            </p>
-          </article>
         </div>
       </section>
 

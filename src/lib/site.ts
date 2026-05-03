@@ -4,7 +4,7 @@ export const siteConfig = {
   name: "DevCanDoIt",
   owner: "Devin Otto",
   title: "AI Systems Consultant and Full-Stack Builder",
-  email: "devinotto26@gmail.com",
+  email: "devin@devcandoit.com",
   linkedinUrl: "https://www.linkedin.com/in/devinjotto/",
   githubUrl: "https://github.com/Devin-Otto",
   tiktokUrl: "https://www.tiktok.com/@beats.ai",
