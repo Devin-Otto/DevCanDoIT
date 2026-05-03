@@ -12,6 +12,8 @@ const venusDist = path.join(venusRoot, "dist");
 const targetDir = path.join(websiteRoot, "public", "Venus");
 const companionSpriteSourceDir = path.join(venusRoot, "sprites");
 const companionSpriteTargetDir = path.join(websiteRoot, "public", "venus-companions", "sprites");
+const companionPetBundleSourceDir = path.join(venusRoot, "pet-bundle-2026-05-02");
+const companionPetBundleTargetDir = path.join(websiteRoot, "public", "venus-companions", "pet-bundle");
 const EXCLUDED_PUBLIC_VENUS_FILES = new Set([
   "favicon-32.png",
   "favicon-192.png",
@@ -66,6 +68,13 @@ if (fs.existsSync(companionSpriteSourceDir)) {
   fs.cpSync(companionSpriteSourceDir, companionSpriteTargetDir, { recursive: true });
 }
 
+if (fs.existsSync(companionPetBundleSourceDir)) {
+  fs.rmSync(companionPetBundleTargetDir, { recursive: true, force: true });
+  fs.mkdirSync(path.dirname(companionPetBundleTargetDir), { recursive: true });
+  fs.cpSync(companionPetBundleSourceDir, companionPetBundleTargetDir, { recursive: true });
+}
+
 console.log(`Synced hosted workspace build into ${targetDir}.`);
 console.log(`Synced companion sprite sheets into ${companionSpriteTargetDir}.`);
+console.log(`Synced companion pet bundle into ${companionPetBundleTargetDir}.`);
 console.log("Commit the updated public/Venus files in DevCanDoIT so Railway can deploy them.");

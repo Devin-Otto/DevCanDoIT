@@ -22,6 +22,7 @@ export type CompanionResponsePreset =
 export interface CompanionSpriteCatalogEntry {
   id: CompanionCharacterId;
   label: string;
+  petBundleAtlasPath?: string;
   spriteSheetFileName: string;
 }
 
@@ -85,10 +86,30 @@ export const COMPANION_RESPONSE_PRESETS = [
 ] as const satisfies CompanionResponsePreset[];
 
 export const COMPANION_CATALOG: CompanionSpriteCatalogEntry[] = [
-  { id: "donut", label: "Donut", spriteSheetFileName: "donut.png" },
-  { id: "mrcrabs", label: "Mr. Crabs", spriteSheetFileName: "mrcrabs.png" },
-  { id: "mark", label: "Mark", spriteSheetFileName: "mark.png" },
-  { id: "kittylion", label: "Kitty Lion", spriteSheetFileName: "kittylion.png" }
+  {
+    id: "donut",
+    label: "Donut",
+    petBundleAtlasPath: "/venus-companions/pet-bundle/donut/spritesheet.png",
+    spriteSheetFileName: "donut.png"
+  },
+  {
+    id: "mrcrabs",
+    label: "Mr. Crabs",
+    petBundleAtlasPath: "/venus-companions/pet-bundle/mr-crabs/spritesheet.png",
+    spriteSheetFileName: "mrcrabs.png"
+  },
+  {
+    id: "mark",
+    label: "Mark",
+    petBundleAtlasPath: "/venus-companions/pet-bundle/mark/spritesheet.png",
+    spriteSheetFileName: "mark.png"
+  },
+  {
+    id: "kittylion",
+    label: "Kitty Lion",
+    petBundleAtlasPath: "/venus-companions/pet-bundle/kittylion/spritesheet.png",
+    spriteSheetFileName: "kittylion.png"
+  }
 ];
 
 const DEFAULT_COMPANION_CHARACTER_RESPONSES: Record<CompanionTriggerType, CompanionResponsePreset> = {
@@ -173,6 +194,18 @@ export const DEFAULT_COMPANION_SESSION: CompanionOverlaySession = {
 export function getHostedCompanionSpriteSheetUrl(characterId: CompanionCharacterId) {
   const entry = COMPANION_CATALOG.find((catalogEntry) => catalogEntry.id === characterId);
   return entry ? `/venus-companions/sprites/${entry.spriteSheetFileName}` : "";
+}
+
+export function getHostedCompanionSpriteSources(characterId: CompanionCharacterId) {
+  const entry = COMPANION_CATALOG.find((catalogEntry) => catalogEntry.id === characterId);
+  if (!entry) {
+    return [];
+  }
+
+  return [
+    ...(entry.petBundleAtlasPath ? [{ kind: "pet-bundle" as const, url: entry.petBundleAtlasPath }] : []),
+    { kind: "legacy-sheet" as const, url: `/venus-companions/sprites/${entry.spriteSheetFileName}` }
+  ];
 }
 
 export function isCompanionCharacterId(value: unknown): value is CompanionCharacterId {

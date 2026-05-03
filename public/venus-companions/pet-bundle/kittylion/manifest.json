@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "id": "kittylion",
+  "displayName": "kittylion",
+  "description": "A cute lion-kitty digital pet based on a pixel-style sprite reference sheet.",
+  "atlas": {
+    "width": 1536,
+    "height": 1872,
+    "format": "webp+png",
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "spritesheetWebP": "spritesheet.webp",
+    "spritesheetPNG": "spritesheet.png"
+  },
+  "states": [
+    {
+      "id": "idle",
+      "description": "Neutral loop for default standing or resting behavior.",
+      "frameCount": 6,
+      "framesPath": "frames/idle",
+      "decodedStripPath": "decoded/idle.png"
+    },
+    {
+      "id": "running-right",
+      "description": "Fast locomotion loop facing right.",
+      "frameCount": 8,
+      "framesPath": "frames/running-right",
+      "decodedStripPath": "decoded/running-right.png"
+    },
+    {
+      "id": "running-left",
+      "description": "Fast locomotion loop facing left.",
+      "frameCount": 8,
+      "framesPath": "frames/running-left",
+      "decodedStripPath": "decoded/running-left.png"
+    },
+    {
+      "id": "waving",
+      "description": "Short greeting or acknowledgement animation.",
+      "frameCount": 4,
+      "framesPath": "frames/waving",
+      "decodedStripPath": "decoded/waving.png"
+    },
+    {
+      "id": "jumping",
+      "description": "Anticipation, lift, apex, and landing sequence.",
+      "frameCount": 5,
+      "framesPath": "frames/jumping",
+      "decodedStripPath": "decoded/jumping.png"
+    },
+    {
+      "id": "failed",
+      "description": "Setback, stumble, or upset reaction loop.",
+      "frameCount": 8,
+      "framesPath": "frames/failed",
+      "decodedStripPath": "decoded/failed.png"
+    },
+    {
+      "id": "waiting",
+      "description": "Patient, low-energy holding loop while idle in context.",
+      "frameCount": 6,
+      "framesPath": "frames/waiting",
+      "decodedStripPath": "decoded/waiting.png"
+    },
+    {
+      "id": "running",
+      "description": "Generic movement loop when left/right facing is not required.",
+      "frameCount": 6,
+      "framesPath": "frames/running",
+      "decodedStripPath": "decoded/running.png"
+    },
+    {
+      "id": "review",
+      "description": "Focused inspection or thinking loop for analysis-style moments.",
+      "frameCount": 6,
+      "framesPath": "frames/review",
+      "decodedStripPath": "decoded/review.png"
+    }
+  ],
+  "runningLeftMirroredFromRunningRight": true,
+  "paths": {
+    "petJson": "pet.json",
+    "validation": "validation.json",
+    "decoded": "decoded",
+    "frames": "frames",
+    "reference": "reference",
+    "qa": "qa"
+  }
+}

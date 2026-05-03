@@ -1,0 +1,6 @@
+{
+  "id": "mark",
+  "displayName": "mark",
+  "description": "A round penguin digital pet based on a pixel-style sprite reference sheet.",
+  "spritesheetPath": "spritesheet.webp"
+}

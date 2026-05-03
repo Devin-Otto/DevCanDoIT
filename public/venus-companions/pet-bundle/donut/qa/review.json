@@ -1,0 +1,962 @@
+{
+  "ok": true,
+  "frames_root": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames",
+  "errors": [],
+  "warnings": [],
+  "rows": [
+    {
+      "state": "idle",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/idle/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26635,
+          "bbox": [
+            5,
+            8,
+            187,
+            200
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 182
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/idle/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27402,
+          "bbox": [
+            5,
+            5,
+            187,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 232
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/idle/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27339,
+          "bbox": [
+            5,
+            6,
+            187,
+            201
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 233
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/idle/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27342,
+          "bbox": [
+            5,
+            5,
+            187,
+            202
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 208
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/idle/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27357,
+          "bbox": [
+            5,
+            5,
+            187,
+            202
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 134
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/idle/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27499,
+          "bbox": [
+            6,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 157
+        }
+      ]
+    },
+    {
+      "state": "running-right",
+      "expected_frames": 8,
+      "actual_frames": 8,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25945,
+          "bbox": [
+            9,
+            5,
+            183,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 264
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26823,
+          "bbox": [
+            5,
+            10,
+            187,
+            197
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 284
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25777,
+          "bbox": [
+            5,
+            8,
+            187,
+            199
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 305
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26838,
+          "bbox": [
+            5,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 295
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26306,
+          "bbox": [
+            6,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 291
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26366,
+          "bbox": [
+            5,
+            5,
+            187,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 295
+        },
+        {
+          "index": 6,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26451,
+          "bbox": [
+            5,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 265
+        },
+        {
+          "index": 7,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-right/07.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26760,
+          "bbox": [
+            5,
+            5,
+            187,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 305
+        }
+      ]
+    },
+    {
+      "state": "running-left",
+      "expected_frames": 8,
+      "actual_frames": 8,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26760,
+          "bbox": [
+            5,
+            5,
+            187,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 305
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26451,
+          "bbox": [
+            5,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 265
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26366,
+          "bbox": [
+            5,
+            5,
+            187,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 295
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26306,
+          "bbox": [
+            6,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 291
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26838,
+          "bbox": [
+            5,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 295
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25777,
+          "bbox": [
+            5,
+            8,
+            187,
+            199
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 305
+        },
+        {
+          "index": 6,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26823,
+          "bbox": [
+            5,
+            10,
+            187,
+            197
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 284
+        },
+        {
+          "index": 7,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running-left/07.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25945,
+          "bbox": [
+            9,
+            5,
+            183,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 264
+        }
+      ]
+    },
+    {
+      "state": "waving",
+      "expected_frames": 4,
+      "actual_frames": 4,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waving/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27372,
+          "bbox": [
+            6,
+            5,
+            186,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 132
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waving/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27224,
+          "bbox": [
+            6,
+            5,
+            185,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 101
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waving/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 24221,
+          "bbox": [
+            5,
+            12,
+            187,
+            196
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 89
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waving/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27126,
+          "bbox": [
+            7,
+            5,
+            185,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 107
+        }
+      ]
+    },
+    {
+      "state": "jumping",
+      "expected_frames": 5,
+      "actual_frames": 5,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/jumping/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 21931,
+          "bbox": [
+            5,
+            29,
+            187,
+            178
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 176
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/jumping/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 22422,
+          "bbox": [
+            5,
+            23,
+            187,
+            185
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 178
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/jumping/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 24953,
+          "bbox": [
+            5,
+            15,
+            187,
+            193
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 202
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/jumping/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25530,
+          "bbox": [
+            5,
+            9,
+            187,
+            199
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 215
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/jumping/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 23477,
+          "bbox": [
+            5,
+            26,
+            187,
+            182
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 202
+        }
+      ]
+    },
+    {
+      "state": "failed",
+      "expected_frames": 8,
+      "actual_frames": 8,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 24018,
+          "bbox": [
+            5,
+            19,
+            187,
+            188
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 241
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 21151,
+          "bbox": [
+            5,
+            29,
+            187,
+            178
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 186
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 16993,
+          "bbox": [
+            5,
+            44,
+            187,
+            163
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 175
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 17998,
+          "bbox": [
+            5,
+            40,
+            187,
+            168
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 136
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 24705,
+          "bbox": [
+            5,
+            15,
+            187,
+            192
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 270
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26587,
+          "bbox": [
+            5,
+            11,
+            187,
+            197
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 248
+        },
+        {
+          "index": 6,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 20357,
+          "bbox": [
+            5,
+            31,
+            187,
+            177
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 225
+        },
+        {
+          "index": 7,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/failed/07.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25011,
+          "bbox": [
+            5,
+            15,
+            187,
+            193
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 279
+        }
+      ]
+    },
+    {
+      "state": "waiting",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waiting/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26586,
+          "bbox": [
+            7,
+            5,
+            184,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 183
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waiting/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27109,
+          "bbox": [
+            8,
+            5,
+            184,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 207
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waiting/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26225,
+          "bbox": [
+            8,
+            5,
+            184,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 230
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waiting/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25377,
+          "bbox": [
+            14,
+            5,
+            177,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 179
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waiting/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25683,
+          "bbox": [
+            12,
+            5,
+            180,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 213
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/waiting/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26654,
+          "bbox": [
+            10,
+            5,
+            182,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 210
+        }
+      ]
+    },
+    {
+      "state": "running",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 19270,
+          "bbox": [
+            5,
+            34,
+            187,
+            173
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 196
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 20002,
+          "bbox": [
+            5,
+            28,
+            187,
+            179
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 177
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 19466,
+          "bbox": [
+            5,
+            34,
+            187,
+            174
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 189
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 20449,
+          "bbox": [
+            5,
+            27,
+            187,
+            180
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 226
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 19504,
+          "bbox": [
+            5,
+            35,
+            187,
+            173
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 182
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/running/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 19620,
+          "bbox": [
+            5,
+            32,
+            187,
+            175
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 176
+        }
+      ]
+    },
+    {
+      "state": "review",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/review/00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26716,
+          "bbox": [
+            13,
+            5,
+            178,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 270
+        },
+        {
+          "index": 1,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/review/01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 24948,
+          "bbox": [
+            5,
+            17,
+            187,
+            191
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 245
+        },
+        {
+          "index": 2,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/review/02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 26557,
+          "bbox": [
+            5,
+            9,
+            187,
+            198
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 265
+        },
+        {
+          "index": 3,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/review/03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 25719,
+          "bbox": [
+            5,
+            12,
+            187,
+            195
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 187
+        },
+        {
+          "index": 4,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/review/04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27222,
+          "bbox": [
+            5,
+            8,
+            187,
+            199
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 259
+        },
+        {
+          "index": 5,
+          "file": "/Users/devinotto/Desktop/CODE/Sprites/output/hatch-pet/donut/frames/review/05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 27130,
+          "bbox": [
+            5,
+            6,
+            187,
+            202
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 214
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import {
   type CompanionOverlaySettings,
   type CompanionResponsePreset,
   type CompanionTriggerEvent,
-  getHostedCompanionSpriteSheetUrl
+  getHostedCompanionSpriteSources
 } from "@/lib/venus-companions";
 
 type CompanionMotionKind = "idle" | "jump" | "lieDown" | "run" | "sit" | "walk";
@@ -22,6 +22,7 @@ interface CompanionFrame {
 interface ParsedCompanionSpriteSheet {
   actions: Record<CompanionMotionKind, CompanionFrame[]>;
   emotions: Record<CompanionEmotionKind, CompanionFrame[]>;
+  reactionStates: Partial<Record<CompanionEmotionKind, CompanionFrame[]>>;
 }
 
 interface VenusCompanionCanvasStageProps {
@@ -59,6 +60,21 @@ type SpriteRowDefinition = {
   cropWidth: number;
 };
 
+type CompanionSpriteAssetSource =
+  | { kind: "legacy-sheet"; url: string }
+  | { kind: "pet-bundle"; url: string };
+
+type PetBundleStateId =
+  | "failed"
+  | "idle"
+  | "jumping"
+  | "review"
+  | "running"
+  | "running-left"
+  | "running-right"
+  | "waiting"
+  | "waving";
+
 const BODY_FPS_BY_MOTION: Record<CompanionMotionKind, number> = {
   idle: 4,
   jump: 7,
@@ -93,6 +109,30 @@ const EMOTION_ORDER: CompanionEmotionKind[] = [
   "surprised",
   "love"
 ];
+const PET_BUNDLE_CELL_WIDTH = 192;
+const PET_BUNDLE_CELL_HEIGHT = 208;
+const PET_BUNDLE_STATE_ORDER: PetBundleStateId[] = [
+  "idle",
+  "running-right",
+  "running-left",
+  "waving",
+  "jumping",
+  "failed",
+  "waiting",
+  "running",
+  "review"
+];
+const PET_BUNDLE_FRAME_COUNTS: Record<PetBundleStateId, number> = {
+  failed: 8,
+  idle: 6,
+  jumping: 5,
+  review: 6,
+  running: 6,
+  "running-left": 8,
+  "running-right": 8,
+  waiting: 6,
+  waving: 4
+};
 const parsedSheetCache = new Map<string, Promise<ParsedCompanionSpriteSheet>>();
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -131,6 +171,84 @@ function loadImage(url: string) {
   });
 }
 
+function trimCanvasToVisiblePixels(
+  sourceCanvas: HTMLCanvasElement,
+  isTransparentPixel: (red: number, green: number, blue: number, alpha: number) => boolean
+) {
+  const sourceContext = sourceCanvas.getContext("2d");
+  if (!sourceContext) {
+    return null;
+  }
+
+  const { width, height } = sourceCanvas;
+  const imageData = sourceContext.getImageData(0, 0, width, height);
+  const pixels = imageData.data;
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+  let visiblePixelCount = 0;
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      const red = pixels[offset];
+      const green = pixels[offset + 1];
+      const blue = pixels[offset + 2];
+      const alpha = pixels[offset + 3];
+
+      if (isTransparentPixel(red, green, blue, alpha)) {
+        pixels[offset + 3] = 0;
+        continue;
+      }
+
+      visiblePixelCount += 1;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  if (visiblePixelCount < 48 || maxX < minX || maxY < minY) {
+    return null;
+  }
+
+  sourceContext.putImageData(imageData, 0, 0);
+
+  const padding = 4;
+  const trimmedLeft = clamp(minX - padding, 0, width - 1);
+  const trimmedTop = clamp(minY - padding, 0, height - 1);
+  const trimmedWidth = clamp(maxX - minX + 1 + padding * 2, 1, width - trimmedLeft);
+  const trimmedHeight = clamp(maxY - minY + 1 + padding * 2, 1, height - trimmedTop);
+  const frameCanvas = document.createElement("canvas");
+  frameCanvas.width = trimmedWidth;
+  frameCanvas.height = trimmedHeight;
+  const frameContext = frameCanvas.getContext("2d");
+
+  if (!frameContext) {
+    return null;
+  }
+
+  frameContext.drawImage(
+    sourceCanvas,
+    trimmedLeft,
+    trimmedTop,
+    trimmedWidth,
+    trimmedHeight,
+    0,
+    0,
+    trimmedWidth,
+    trimmedHeight
+  );
+
+  return {
+    canvas: frameCanvas,
+    height: trimmedHeight,
+    width: trimmedWidth
+  } satisfies CompanionFrame;
+}
+
 function getBackgroundColor(context: CanvasRenderingContext2D, imageWidth: number, imageHeight: number) {
   const samples = [
     context.getImageData(4, 4, 1, 1).data,
@@ -152,7 +270,7 @@ function isBackgroundPixel(red: number, green: number, blue: number, background:
   return Math.abs(red - background.r) <= 18 && Math.abs(green - background.g) <= 18 && Math.abs(blue - background.b) <= 18;
 }
 
-function extractFrame(
+function extractLegacyFrame(
   sourceContext: CanvasRenderingContext2D,
   imageWidth: number,
   imageHeight: number,
@@ -173,64 +291,27 @@ function extractFrame(
   }
 
   workingContext.drawImage(sourceContext.canvas, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-  const imageData = workingContext.getImageData(0, 0, cropWidth, cropHeight);
-  const pixels = imageData.data;
-  let minX = cropWidth;
-  let minY = cropHeight;
-  let maxX = -1;
-  let maxY = -1;
-  let visiblePixelCount = 0;
-
-  for (let y = 0; y < cropHeight; y += 1) {
-    for (let x = 0; x < cropWidth; x += 1) {
-      const offset = (y * cropWidth + x) * 4;
-      const red = pixels[offset];
-      const green = pixels[offset + 1];
-      const blue = pixels[offset + 2];
-      const alpha = pixels[offset + 3];
-
-      if (alpha === 0 || isBackgroundPixel(red, green, blue, background)) {
-        pixels[offset + 3] = 0;
-        continue;
-      }
-
-      visiblePixelCount += 1;
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x);
-      maxY = Math.max(maxY, y);
-    }
-  }
-
-  if (visiblePixelCount < 120 || maxX < minX || maxY < minY) {
-    return null;
-  }
-
-  workingContext.putImageData(imageData, 0, 0);
-  const padding = 4;
-  const trimmedLeft = clamp(minX - padding, 0, cropWidth - 1);
-  const trimmedTop = clamp(minY - padding, 0, cropHeight - 1);
-  const trimmedWidth = clamp(maxX - minX + 1 + padding * 2, 1, cropWidth - trimmedLeft);
-  const trimmedHeight = clamp(maxY - minY + 1 + padding * 2, 1, cropHeight - trimmedTop);
-
-  const frameCanvas = document.createElement("canvas");
-  frameCanvas.width = trimmedWidth;
-  frameCanvas.height = trimmedHeight;
-  const frameContext = frameCanvas.getContext("2d");
-
-  if (!frameContext) {
-    return null;
-  }
-
-  frameContext.drawImage(workingCanvas, trimmedLeft, trimmedTop, trimmedWidth, trimmedHeight, 0, 0, trimmedWidth, trimmedHeight);
-  return {
-    canvas: frameCanvas,
-    height: trimmedHeight,
-    width: trimmedWidth
-  } satisfies CompanionFrame;
+  return trimCanvasToVisiblePixels(
+    workingCanvas,
+    (red, green, blue, alpha) => alpha === 0 || isBackgroundPixel(red, green, blue, background)
+  );
 }
 
-async function parseSpriteSheet(url: string): Promise<ParsedCompanionSpriteSheet> {
+function extractPetBundleFrame(sourceContext: CanvasRenderingContext2D, left: number, top: number, width: number, height: number) {
+  const workingCanvas = document.createElement("canvas");
+  workingCanvas.width = width;
+  workingCanvas.height = height;
+  const workingContext = workingCanvas.getContext("2d");
+
+  if (!workingContext) {
+    return null;
+  }
+
+  workingContext.drawImage(sourceContext.canvas, left, top, width, height, 0, 0, width, height);
+  return trimCanvasToVisiblePixels(workingCanvas, (_red, _green, _blue, alpha) => alpha === 0);
+}
+
+async function parseLegacySpriteSheet(url: string): Promise<ParsedCompanionSpriteSheet> {
   const image = await loadImage(url);
   const sourceCanvas = document.createElement("canvas");
   sourceCanvas.width = image.naturalWidth;
@@ -249,7 +330,7 @@ async function parseSpriteSheet(url: string): Promise<ParsedCompanionSpriteSheet
       const definition = BODY_ROW_DEFINITIONS[motionKind];
       const frames = definition.columns
         .map((centerXRatio) =>
-          extractFrame(
+          extractLegacyFrame(
             sourceContext,
             image.naturalWidth,
             image.naturalHeight,
@@ -268,7 +349,7 @@ async function parseSpriteSheet(url: string): Promise<ParsedCompanionSpriteSheet
 
   const emotions = Object.fromEntries(
     EMOTION_ORDER.map((emotion, index) => {
-      const frame = extractFrame(
+      const frame = extractLegacyFrame(
         sourceContext,
         image.naturalWidth,
         image.naturalHeight,
@@ -282,18 +363,102 @@ async function parseSpriteSheet(url: string): Promise<ParsedCompanionSpriteSheet
     })
   ) as Record<CompanionEmotionKind, CompanionFrame[]>;
 
-  return { actions, emotions };
+  return { actions, emotions, reactionStates: {} };
+}
+
+async function parsePetBundleAtlas(url: string): Promise<ParsedCompanionSpriteSheet> {
+  const image = await loadImage(url);
+  const sourceCanvas = document.createElement("canvas");
+  sourceCanvas.width = image.naturalWidth;
+  sourceCanvas.height = image.naturalHeight;
+  const sourceContext = sourceCanvas.getContext("2d");
+
+  if (!sourceContext) {
+    throw new Error(`Could not initialize canvas for pet bundle atlas: ${url}`);
+  }
+
+  sourceContext.drawImage(image, 0, 0);
+
+  const bundleStates = Object.fromEntries(
+    PET_BUNDLE_STATE_ORDER.map((stateId, rowIndex) => {
+      const frameCount = PET_BUNDLE_FRAME_COUNTS[stateId];
+      const frames = Array.from({ length: frameCount }, (_unused, frameIndex) =>
+        extractPetBundleFrame(
+          sourceContext,
+          frameIndex * PET_BUNDLE_CELL_WIDTH,
+          rowIndex * PET_BUNDLE_CELL_HEIGHT,
+          PET_BUNDLE_CELL_WIDTH,
+          PET_BUNDLE_CELL_HEIGHT
+        )
+      ).filter((frame): frame is CompanionFrame => Boolean(frame));
+
+      return [stateId, frames];
+    })
+  ) as Record<PetBundleStateId, CompanionFrame[]>;
+
+  const emptyEmotionFrames: Record<CompanionEmotionKind, CompanionFrame[]> = {
+    angry: [],
+    curious: [],
+    excited: [],
+    happy: [],
+    love: [],
+    sad: [],
+    surprised: []
+  };
+
+  return {
+    actions: {
+      idle: bundleStates.idle,
+      jump: bundleStates.jumping,
+      lieDown: bundleStates.waiting.length ? bundleStates.waiting : bundleStates.idle,
+      run: bundleStates["running-right"].length ? bundleStates["running-right"] : bundleStates.running,
+      sit: bundleStates.waiting.length ? bundleStates.waiting : bundleStates.idle,
+      walk: bundleStates.running.length ? bundleStates.running : bundleStates["running-right"]
+    },
+    emotions: emptyEmotionFrames,
+    reactionStates: {
+      angry: bundleStates.failed,
+      curious: bundleStates.review,
+      excited: bundleStates.waving,
+      happy: bundleStates.waving,
+      love: bundleStates.waving,
+      sad: bundleStates.failed,
+      surprised: bundleStates.jumping.length ? bundleStates.jumping : bundleStates.waving
+    }
+  };
+}
+
+async function parseCompanionSpriteSource(source: CompanionSpriteAssetSource) {
+  if (source.kind === "pet-bundle") {
+    return parsePetBundleAtlas(source.url);
+  }
+
+  return parseLegacySpriteSheet(source.url);
 }
 
 function loadCompanionSpriteSheet(characterId: CompanionCharacterId) {
-  const url = getHostedCompanionSpriteSheetUrl(characterId);
-  const cached = parsedSheetCache.get(url);
+  const sources = getHostedCompanionSpriteSources(characterId);
+  const cacheKey = sources.map((source) => `${source.kind}:${source.url}`).join("|");
+  const cached = parsedSheetCache.get(cacheKey);
   if (cached) {
     return cached;
   }
 
-  const promise = parseSpriteSheet(url);
-  parsedSheetCache.set(url, promise);
+  const promise = (async () => {
+    let lastError: Error | null = null;
+
+    for (const source of sources) {
+      try {
+        return await parseCompanionSpriteSource(source);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
+    throw lastError ?? new Error(`Could not load companion sprite sources for ${characterId}.`);
+  })();
+
+  parsedSheetCache.set(cacheKey, promise);
   return promise;
 }
 
@@ -315,7 +480,8 @@ function resolveEmotionKind(response: CompanionResponsePreset): CompanionEmotion
 }
 
 function bodyFrameForActor(actor: CompanionActorState, sheet: ParsedCompanionSpriteSheet, now: number) {
-  const frames = sheet.actions[actor.currentMotion];
+  const reactionFrames = actor.activeEmotion ? sheet.reactionStates[actor.activeEmotion] : null;
+  const frames = reactionFrames?.length ? reactionFrames : sheet.actions[actor.currentMotion];
   if (!frames.length) {
     return null;
   }
@@ -330,7 +496,7 @@ function bodyFrameForActor(actor: CompanionActorState, sheet: ParsedCompanionSpr
 }
 
 function emotionFrameForActor(actor: CompanionActorState, sheet: ParsedCompanionSpriteSheet) {
-  if (!actor.activeEmotion) {
+  if (!actor.activeEmotion || sheet.reactionStates[actor.activeEmotion]?.length) {
     return null;
   }
 

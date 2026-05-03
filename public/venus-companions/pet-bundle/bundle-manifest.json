@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-05-03T04:33:14.270882+00:00",
+  "bundleType": "generic-pet-asset-pack",
+  "atlas": {
+    "width": 1536,
+    "height": 1872,
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "stateOrder": [
+      "idle",
+      "running-right",
+      "running-left",
+      "waving",
+      "jumping",
+      "failed",
+      "waiting",
+      "running",
+      "review"
+    ]
+  },
+  "pets": [
+    {
+      "id": "donut",
+      "displayName": "donut",
+      "description": "A fluffy cream pomeranian digital pet based on a pixel-style sprite reference sheet.",
+      "runningLeftMirroredFromRunningRight": true,
+      "atlas": {
+        "width": 1536,
+        "height": 1872,
+        "cellWidth": 192,
+        "cellHeight": 208
+      },
+      "stateFrameCounts": {
+        "idle": 6,
+        "running-right": 8,
+        "running-left": 8,
+        "waving": 4,
+        "jumping": 5,
+        "failed": 8,
+        "waiting": 6,
+        "running": 6,
+        "review": 6
+      },
+      "paths": {
+        "petRoot": "donut",
+        "petJson": "donut/pet.json",
+        "spritesheetWebP": "donut/spritesheet.webp",
+        "spritesheetPNG": "donut/spritesheet.png",
+        "manifest": "donut/manifest.json",
+        "validation": "donut/validation.json",
+        "decoded": "donut/decoded",
+        "frames": "donut/frames",
+        "reference": "donut/reference",
+        "qa": "donut/qa"
+      }
+    },
+    {
+      "id": "mr-crabs",
+      "displayName": "Mr. Crabs",
+      "description": "A bright red cartoon crab digital pet based on a pixel-style sprite reference sheet.",
+      "runningLeftMirroredFromRunningRight": true,
+      "atlas": {
+        "width": 1536,
+        "height": 1872,
+        "cellWidth": 192,
+        "cellHeight": 208
+      },
+      "stateFrameCounts": {
+        "idle": 6,
+        "running-right": 8,
+        "running-left": 8,
+        "waving": 4,
+        "jumping": 5,
+        "failed": 8,
+        "waiting": 6,
+        "running": 6,
+        "review": 6
+      },
+      "paths": {
+        "petRoot": "mr-crabs",
+        "petJson": "mr-crabs/pet.json",
+        "spritesheetWebP": "mr-crabs/spritesheet.webp",
+        "spritesheetPNG": "mr-crabs/spritesheet.png",
+        "manifest": "mr-crabs/manifest.json",
+        "validation": "mr-crabs/validation.json",
+        "decoded": "mr-crabs/decoded",
+        "frames": "mr-crabs/frames",
+        "reference": "mr-crabs/reference",
+        "qa": "mr-crabs/qa"
+      }
+    },
+    {
+      "id": "mark",
+      "displayName": "mark",
+      "description": "A round penguin digital pet based on a pixel-style sprite reference sheet.",
+      "runningLeftMirroredFromRunningRight": true,
+      "atlas": {
+        "width": 1536,
+        "height": 1872,
+        "cellWidth": 192,
+        "cellHeight": 208
+      },
+      "stateFrameCounts": {
+        "idle": 6,
+        "running-right": 8,
+        "running-left": 8,
+        "waving": 4,
+        "jumping": 5,
+        "failed": 8,
+        "waiting": 6,
+        "running": 6,
+        "review": 6
+      },
+      "paths": {
+        "petRoot": "mark",
+        "petJson": "mark/pet.json",
+        "spritesheetWebP": "mark/spritesheet.webp",
+        "spritesheetPNG": "mark/spritesheet.png",
+        "manifest": "mark/manifest.json",
+        "validation": "mark/validation.json",
+        "decoded": "mark/decoded",
+        "frames": "mark/frames",
+        "reference": "mark/reference",
+        "qa": "mark/qa"
+      }
+    },
+    {
+      "id": "kittylion",
+      "displayName": "kittylion",
+      "description": "A cute lion-kitty digital pet based on a pixel-style sprite reference sheet.",
+      "runningLeftMirroredFromRunningRight": true,
+      "atlas": {
+        "width": 1536,
+        "height": 1872,
+        "cellWidth": 192,
+        "cellHeight": 208
+      },
+      "stateFrameCounts": {
+        "idle": 6,
+        "running-right": 8,
+        "running-left": 8,
+        "waving": 4,
+        "jumping": 5,
+        "failed": 8,
+        "waiting": 6,
+        "running": 6,
+        "review": 6
+      },
+      "paths": {
+        "petRoot": "kittylion",
+        "petJson": "kittylion/pet.json",
+        "spritesheetWebP": "kittylion/spritesheet.webp",
+        "spritesheetPNG": "kittylion/spritesheet.png",
+        "manifest": "kittylion/manifest.json",
+        "validation": "kittylion/validation.json",
+        "decoded": "kittylion/decoded",
+        "frames": "kittylion/frames",
+        "reference": "kittylion/reference",
+        "qa": "kittylion/qa"
+      }
+    }
+  ]
+}
